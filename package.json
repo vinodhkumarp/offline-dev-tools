@@ -1,0 +1,41 @@
+{
+  "name": "offline-dev-tools",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Privacy-focused developer utilities that run entirely in the browser.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "node scripts/copy-swagger-editor.js && vite",
+    "build": "node scripts/copy-swagger-editor.js && tsc -b && vite build",
+    "lint": "eslint .",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "check": "npm run lint && npm test && npm run build",
+    "preview": "vite preview",
+    "postinstall": "node scripts/copy-swagger-editor.js"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.1",
+    "lucide-react": "^1.17.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.12.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "swagger-editor-dist": "^4.14.8",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.59.2",
+    "vite": "^8.0.12"
+  }
+}
