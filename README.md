@@ -9,6 +9,7 @@ The app builds to a static folder. It has no backend and no analytics, and the p
 | Category | Tool | What it does |
 | --- | --- | --- |
 | API | Swagger Editor | Edit and preview OpenAPI/Swagger specs offline (bundled Swagger Editor, network blocked) |
+| API | API Client | Postman-style REST client: tabs, collections, environments, auth, scripts/tests, code snippets, cURL/Postman import. Needs the local proxy (see below) |
 | Data | JSON/YAML Formatter | Validate, format, minify, and convert between JSON and YAML |
 | Data | Text Diff | Line diff with word-level highlights, in unified or split view |
 | Data | SQL Formatter | Re-indent SQL for readability while keeping literals, comments and operators intact |
@@ -47,12 +48,28 @@ npm run dev      # start the Vite dev server
 
 Serve `dist/` over HTTP(S). Opening `dist/index.html` straight from the filesystem does not work.
 
+## API Client and its local proxy
+
+Browsers cannot call arbitrary internal APIs because of CORS, and this app's page blocks all outbound connections. The API Client therefore runs in its own iframe and hands each request to a small Java proxy on your own machine. Only the JDK (11+) is needed.
+
+```bash
+npm run api-proxy                  # listens on http://localhost:5050 (127.0.0.1 only)
+java tools/api-proxy/ApiLab.java 8080
+```
+
+- It also serves the client by itself at `http://localhost:5050/`, so it works without the rest of the app.
+- Allowed cross-origin callers default to `http://localhost:5173` and `:4173` (Vite dev and preview). For a deployed copy add its origin: `java -Dapilab.origins=https://tools.example.com tools/api-proxy/ApiLab.java` (or the `APILAB_ORIGINS` env var).
+- Behind a corporate proxy: `JAVA_TOOL_OPTIONS=-Djava.net.useSystemProxies=true npm run api-proxy`.
+- The proxy only accepts requests whose `Host` is exactly `localhost` or `127.0.0.1` and whose `Origin` is itself or an allowed origin. Nothing else on your machine or the web can use it.
+- Collections, environments and history are kept in `localStorage` under `apilab.v1` and are removed by "Clear data". Tokens saved in environments are stored unencrypted, like the rest of the app's data.
+- Trade-off: the iframe has its own CSP that allows connections to `localhost` only. The rest of the app keeps `connect-src 'none'`. The proxy itself can reach any host your machine can, so treat this one tool as the exception to the "nothing leaves the browser" rule.
+
 ## Privacy and security model
 
 - **No backend.** Every tool runs in the page. Nothing you enter leaves the browser.
 - **Strict CSP in production.** `vite.config.ts` injects the policy. Builds get `script-src 'self'` and `connect-src 'none'`. The dev server gets a relaxed policy so Vite HMR can work.
 - **Isolated Swagger Editor.** The editor runs in an iframe with its own CSP (`connect-src 'none'`). Remote validation, code generation and "Try it out" are turned off. The iframe needs `allow-scripts` and `allow-same-origin` so it can use `localStorage`. Browsers warn about that combination, so treat the frame's CSP, not the sandbox attribute, as the boundary.
-- **Local storage only.** Only the theme and the Swagger spec are saved, in `localStorage`. "Clear data" removes just this app's keys.
+- **Local storage only.** Only the theme, the Swagger spec and the API Client data are saved, in `localStorage`. "Clear data" removes just this app's keys.
 - **Escaped output.** Syntax-highlighted output is HTML-escaped before rendering. HTML entity decoding runs in an inert document.
 
 The browser profile and the web server are still part of your trust boundary. A local-only tool prevents accidental uploads. It cannot protect data from a compromised extension, device, dependency or host.
@@ -83,6 +100,8 @@ src/
   lib/                     Pure logic with unit tests (JWT verification, md5, cron, SQL formatting)
   storage.ts               App-owned localStorage keys
   index.css                Design system and responsive layout
+tools/api-proxy/ApiLab.java  Local HTTP proxy used by the API Client (JDK only)
+public/api-lab/index.html  API Client UI (single file, loaded in an iframe)
 scripts/
   copy-swagger-editor.js   Copies Swagger assets and generates the locked-down iframe host page
 public/swagger-editor/     Generated at install time (git-ignored)

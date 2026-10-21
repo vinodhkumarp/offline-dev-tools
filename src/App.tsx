@@ -19,10 +19,12 @@ import {
   Trash2,
   ArrowLeft,
   Terminal,
-  Code2
+  Code2,
+  Send
 } from 'lucide-react';
 import JSONFormatter from './components/JSONFormatter';
 import SwaggerEditorWrapper from './components/SwaggerEditorWrapper';
+import ApiClientWrapper from './components/ApiClientWrapper';
 import Base64Tool from './components/Base64Tool';
 import JWTDebugger from './components/JWTDebugger';
 import HashGenerator from './components/HashGenerator';
@@ -140,7 +142,7 @@ export default function App() {
   };
 
   const handleClearAllData = () => {
-    if (confirm('Clear this app\'s locally stored theme and Swagger specification? This cannot be undone.')) {
+    if (confirm('Clear this app\'s locally stored theme, Swagger specification and API client data? This cannot be undone.')) {
       clearAppStorage();
       window.location.reload();
     }
@@ -154,6 +156,14 @@ export default function App() {
       category: 'API Tools',
       icon: BookOpen,
       component: SwaggerEditorWrapper
+    },
+    {
+      id: 'api-client',
+      name: 'API Client',
+      description: 'Postman-style REST client: collections, environments, auth, tests. Sends requests via a local proxy.',
+      category: 'API Tools',
+      icon: Send,
+      component: ApiClientWrapper
     },
     {
       id: 'json-formatter',

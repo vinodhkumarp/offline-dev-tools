@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; frame-src about: blob:; connect-src 'self' http://localhost:* http://127.0.0.1:*; base-uri 'none'; form-action 'none';">
+<title>ApiLab</title>
+<style>
+:root{--bg:#1b1d23;--panel:#23262e;--panel2:#2b2f38;--line:#3a3f4b;--text:#e6e8ee;--muted:#9aa1b0;--accent:#ff6c37;--blue:#4f8cff;--ok:#3fb950;--warn:#d29922;--err:#f85149;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+@media(prefers-color-scheme:light){:root{--bg:#f5f6f8;--panel:#fff;--panel2:#eef0f4;--line:#d6dae1;--text:#1f2430;--muted:#6a7282}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column}
+button,select,input,textarea{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:5px 9px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+button{cursor:pointer}button:hover{border-color:var(--muted)}
+button.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.ghost{background:transparent}
+button.x{background:transparent;border:none;color:var(--muted);padding:2px 6px}
+button.x:hover{color:var(--err)}
+header{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+.logo{font-weight:700;font-size:15px;color:var(--accent);margin-right:8px}
+.sp{flex:1}
+#app{flex:1;display:flex;min-height:0}
+aside{width:290px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.stabs{display:flex;border-bottom:1px solid var(--line)}
+.stabs button{flex:1;border:none;border-radius:0;background:transparent;padding:8px;color:var(--muted)}
+.stabs button.on{color:var(--text);box-shadow:inset 0 -2px var(--accent)}
+#sbar{padding:8px;display:flex;gap:6px}
+#sideList{flex:1;overflow:auto;padding:0 6px 10px}
+.col{margin-bottom:2px}
+.colh,.itm{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer}
+.colh:hover,.itm:hover{background:var(--panel2)}
+.colh .nm,.itm .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acts{display:none;gap:0}.colh:hover .acts,.itm:hover .acts{display:flex}
+.itm{margin-left:14px}
+.itm.on{background:var(--panel2)}
+.m{font:700 10px var(--mono);min-width:44px;text-align:left}
+.m.GET{color:#3fb950}.m.POST{color:#d29922}.m.PUT{color:#4f8cff}.m.PATCH{color:#a371f7}.m.DELETE{color:#f85149}.m.HEAD,.m.OPTIONS{color:#9aa1b0}
+.muted{color:var(--muted)}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+#tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{display:flex;align-items:center;gap:6px;padding:7px 10px;border-right:1px solid var(--line);cursor:pointer;white-space:nowrap;max-width:220px;color:var(--muted)}
+.tab.on{background:var(--bg);color:var(--text);box-shadow:inset 0 2px var(--accent)}
+.tab .nm{overflow:hidden;text-overflow:ellipsis}
+.tab.dirty .nm::after{content:" •";color:var(--accent)}
+#reqSec{display:flex;flex-direction:column;min-height:120px;height:46%}
+.urlbar{display:flex;gap:6px;padding:10px}
+.urlbar #method{width:105px;font-weight:700}
+.urlbar #url{flex:1;font-family:var(--mono)}
+.sub{display:flex;gap:2px;padding:0 10px;border-bottom:1px solid var(--line)}
+.sub button{border:none;background:transparent;border-radius:0;color:var(--muted);padding:6px 10px}
+.sub button.on{color:var(--text);box-shadow:inset 0 -2px var(--accent)}
+.sub .cnt{color:var(--ok);font-size:11px}
+#reqPane,#respPane{flex:1;overflow:auto;padding:10px;min-height:0}
+#split{height:5px;background:var(--line);cursor:row-resize}
+#split:hover{background:var(--accent)}
+#respSec{flex:1;display:flex;flex-direction:column;min-height:120px}
+#rstat{display:flex;gap:14px;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);min-height:34px}
+.pill{padding:2px 9px;border-radius:10px;font-weight:700;font-size:12px}
+.pill.s2{background:#3fb95030;color:var(--ok)}.pill.s3{background:#4f8cff30;color:var(--blue)}.pill.s4{background:#d2992230;color:var(--warn)}.pill.s5,.pill.err{background:#f8514930;color:var(--err)}
+.kv{display:flex;flex-direction:column;gap:4px}
+.kvr{display:flex;gap:5px;align-items:center}
+.kvr input.k{width:32%}.kvr input.v,.kvr input.f{flex:1}.kvr input[type=checkbox]{width:auto}
+.kvr select{width:70px}
+.row{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.row label{min-width:80px;color:var(--muted)}
+textarea.code{width:100%;height:100%;min-height:150px;font-family:var(--mono);font-size:12.5px;resize:none;tab-size:2;white-space:pre}
+pre.out{margin:0;font:12.5px/1.5 var(--mono);white-space:pre-wrap;word-break:break-all}
+pre.out.nowrap{white-space:pre;word-break:normal}
+.jk{color:#79b8ff}.js{color:#9ecb7b}.jn{color:#f0a05a}.jb{color:#c792ea}.jz{color:#999}
+@media(prefers-color-scheme:light){.jk{color:#005cc5}.js{color:#22863a}.jn{color:#b45309}.jb{color:#6f42c1}}
+table.t{border-collapse:collapse;width:100%}
+table.t td,table.t th{border-bottom:1px solid var(--line);padding:4px 8px;text-align:left;vertical-align:top;word-break:break-all}
+table.t th{color:var(--muted);font-weight:600}
+.empty{color:var(--muted);text-align:center;margin-top:40px}
+.errbox{color:var(--err);white-space:pre-wrap;font-family:var(--mono)}
+.tbar{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+.seg button{border-radius:0}.seg button:first-child{border-radius:5px 0 0 5px}.seg button:last-child{border-radius:0 5px 5px 0}
+.seg button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.pass{color:var(--ok)}.fail{color:var(--err)}
+.ov{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:10}
+.md{background:var(--panel);border:1px solid var(--line);border-radius:8px;width:520px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column}
+.md.wide{width:900px}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.mb{padding:14px;overflow:auto}
+.mf{display:flex;justify-content:flex-end;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+.mb textarea{width:100%;font-family:var(--mono);font-size:12px}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:6px;display:none;z-index:20}
+.envl{display:flex;gap:14px;min-height:300px}.envl .lft{width:200px}.envl .rgt{flex:1}
+.envl .itm{margin-left:0}
+iframe.prev{width:100%;height:100%;min-height:300px;border:1px solid var(--line);background:#fff;border-radius:5px}
+img.prev{max-width:100%}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">⚡ ApiLab</div>
+  <span class="sp"></span>
+  <span class="muted" title="Local ApiLab Java proxy that sends the requests">Proxy</span><input id="proxyUrl" style="width:170px" spellcheck="false"><span class="muted">Environment</span>
+  <select id="envSel"></select>
+  <button id="envBtn">Manage</button>
+  <button id="impBtn">Import</button>
+  <button id="expBtn">Export all</button>
+  <button id="helpBtn">Help</button>
+</header>
+<div id="app">
+  <aside>
+    <div class="stabs"><button data-s="collections" class="on">Collections</button><button data-s="history">History</button></div>
+    <div id="sbar"></div>
+    <div id="sideList"></div>
+  </aside>
+  <main>
+    <div id="tabs"></div>
+    <section id="reqSec">
+      <div class="urlbar">
+        <select id="method"></select>
+        <input id="url" placeholder="Enter URL, e.g. {{baseUrl}}/api/users  (or paste a cURL command)" spellcheck="false">
+        <button id="send" class="pri">Send</button>
+        <button id="saveBtn">Save</button>
+        <button id="codeBtn">&lt;/&gt;</button>
+      </div>
+      <div class="sub" id="subs"></div>
+      <div id="reqPane"></div>
+    </section>
+    <div id="split"></div>
+    <section id="respSec">
+      <div id="rstat"></div>
+      <div class="sub" id="rsubs"></div>
+      <div id="respPane"></div>
+    </section>
+  </main>
+</div>
+<div id="toast"></div>
+<datalist id="hn"><option>Accept<option>Accept-Language<option>Authorization<option>Cache-Control<option>Content-Type<option>Cookie<option>If-None-Match<option>Origin<option>Referer<option>User-Agent<option>X-Api-Key<option>X-Correlation-Id<option>X-Requested-With</datalist>
+
+<script>
+'use strict';
+const KEY='apilab.v1';
+/* Where the local ApiLab Java proxy lives. Same origin when served by the proxy itself; localhost:5050 when embedded in offline-dev-tools. */
+const PROXY_KEY='apilab.proxy';
+const embedded=window.parent!==window;
+const getProxy=()=>{try{const v=localStorage.getItem(PROXY_KEY);if(v)return v.replace(/\/+$/,'')}catch(e){}return embedded?'http://localhost:5050':''};
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const uid=()=>Math.random().toString(36).slice(2,10);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const METHODS=['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS'];
+const STATUS={200:'OK',201:'Created',202:'Accepted',204:'No Content',301:'Moved Permanently',302:'Found',304:'Not Modified',307:'Temporary Redirect',308:'Permanent Redirect',400:'Bad Request',401:'Unauthorized',403:'Forbidden',404:'Not Found',405:'Method Not Allowed',409:'Conflict',415:'Unsupported Media Type',422:'Unprocessable Entity',429:'Too Many Requests',500:'Internal Server Error',502:'Bad Gateway',503:'Service Unavailable',504:'Gateway Timeout'};
+const b64=s=>btoa(unescape(encodeURIComponent(s)));
+const unb64=s=>decodeURIComponent(escape(atob(s)));
+const newRow=()=>({id:uid(),k:'',v:'',on:true,t:'text'});
+const newReq=(o={})=>({id:uid(),name:'New Request',method:'GET',url:'',params:[newRow()],headers:[newRow()],
+  auth:{type:'none',token:'',user:'',pass:'',key:'',value:'',in:'header'},
+  body:{type:'none',raw:'',form:[newRow()],urlenc:[newRow()]},pre:'',tests:'',
+  settings:{follow:true,insecure:false,timeout:30000},collectionId:null,...o});
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+let S={collections:[],history:[],envs:[],activeEnv:'',globals:[newRow()],tabs:[],active:null,sideTab:'collections'};
+const RESP={}, FILES={};
+let sub='params', rsub='body', rview='pretty', ctrl=null;
+
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d)S={...S,...d}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let saveT;
+function touch(){const r=cur();if(r)r.dirty=true;clearTimeout(saveT);saveT=setTimeout(save,300);renderTabs()}
+const cur=()=>S.tabs.find(t=>t.id===S.active);
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2200)}
+function copy(txt){(navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).catch(()=>{const a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}).finally?.(()=>toast('Copied'))}
+function download(name,data,type='application/octet-stream'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+
+function modal(title,html,{wide=false,okText='OK',onOk,hideOk=false}={}){
+  const d=document.createElement('div');d.className='ov';
+  d.innerHTML=`<div class="md ${wide?'wide':''}"><div class="mh"><b>${title}</b><button class="x">✕</button></div><div class="mb">${html}</div>${hideOk?'':`<div class="mf"><button class="ghost" data-c>Cancel</button><button class="pri" data-ok>${okText}</button></div>`}</div>`;
+  document.body.appendChild(d);
+  const close=()=>d.remove();
+  $('.mh .x',d).onclick=close;d.onmousedown=e=>{if(e.target===d)close()};
+  if(!hideOk){$('[data-c]',d).onclick=close;$('[data-ok]',d).onclick=async()=>{if(onOk&&(await onOk(d))===false)return;close()}}
+  return {el:d,close};
+}
+
+/* ---------- key/value editor ---------- */
+function kv(el,rows,{form=false,hn=false,onChange=touch}={}){
+  el.innerHTML='';
+  const tbl=document.createElement('div');tbl.className='kv';el.appendChild(tbl);
+  const ensure=()=>{const l=rows[rows.length-1];if(!l||l.k||l.v)rows.push(newRow())};
+  ensure();
+  const dom=row=>{
+    const d=document.createElement('div');d.className='kvr';
+    d.innerHTML=`<input type="checkbox" ${row.on?'checked':''}><input class="k" placeholder="Key" ${hn?'list="hn"':''}>${row.t==='file'?'<input type="file" class="f">':'<input class="v" placeholder="Value">'}${form?`<select class="t"><option>text</option><option ${row.t==='file'?'selected':''}>file</option></select>`:''}<button class="x" title="Remove">✕</button>`;
+    const cb=$('input[type=checkbox]',d),k=$('.k',d),v=$('.v',d),f=$('.f',d),t=$('.t',d);
+    k.value=row.k;if(v)v.value=row.v;
+    if(f&&row.v&&!FILES[row.id])f.title='Previously: '+row.v+' (re-select file)';
+    cb.onchange=()=>{row.on=cb.checked;onChange()};
+    const grow=()=>{if(rows[rows.length-1]===row){ensure();tbl.appendChild(dom(rows[rows.length-1]))}};
+    k.oninput=()=>{row.k=k.value;grow();onChange()};
+    if(v)v.oninput=()=>{row.v=v.value;grow();onChange()};
+    if(f)f.onchange=()=>{FILES[row.id]=f.files[0];row.v=f.files[0]?.name||'';grow();onChange()};
+    if(t)t.onchange=()=>{row.t=t.value;kv(el,rows,{form,hn,onChange});onChange()};
+    $('.x',d).onclick=()=>{const i=rows.indexOf(row);rows.splice(i,1);kv(el,rows,{form,hn,onChange});onChange()};
+    return d;
+  };
+  rows.forEach(r=>tbl.appendChild(dom(r)));
+}
+
+/* ---------- URL <-> params ---------- */
+const enc=s=>encodeURIComponent(s).replace(/%7B/g,'{').replace(/%7D/g,'}').replace(/%24/g,'$');
+const dec=s=>{try{return decodeURIComponent(s.replace(/\+/g,' '))}catch(e){return s}};
+function parseQuery(url){const i=url.indexOf('?');if(i<0)return[];const q=url.slice(i+1).split('#')[0];
+  return q?q.split('&').map(p=>{const j=p.indexOf('=');return {...newRow(),k:dec(j<0?p:p.slice(0,j)),v:j<0?'':dec(p.slice(j+1))}}):[]}
+function urlToParams(r){const off=r.params.filter(p=>!p.on&&(p.k||p.v));r.params=[...parseQuery(r.url),...off,newRow()]}
+function paramsToUrl(r){const i=r.url.indexOf('?');const base=i<0?r.url:r.url.slice(0,i);
+  const q=r.params.filter(p=>p.on&&(p.k||p.v)).map(p=>enc(p.k)+(p.v!==''?'='+enc(p.v):'')).join('&');r.url=base+(q?'?'+q:'')}
+
+/* ---------- variables ---------- */
+function vars(){const m={};for(const g of S.globals)if(g.on&&g.k)m[g.k]=g.v;
+  const e=S.envs.find(e=>e.id===S.activeEnv);if(e)for(const x of e.vars)if(x.on&&x.k)m[x.k]=x.v;return m}
+function sub_(s,m){return String(s??'').replace(/\{\{\s*([^}\s]+)\s*\}\}/g,(a,k)=>{
+  if(k in m)return m[k];
+  if(k==='$guid')return crypto.randomUUID();
+  if(k==='$timestamp')return Math.floor(Date.now()/1000);
+  if(k==='$isoTimestamp')return new Date().toISOString();
+  if(k==='$randomInt')return Math.floor(Math.random()*1000);
+  return a})}
+function activeEnvVars(){let e=S.envs.find(e=>e.id===S.activeEnv);
+  if(!e){e={id:uid(),name:'Default',vars:[newRow()]};S.envs.push(e);S.activeEnv=e.id;renderEnvSel()}return e.vars}
+
+/* ---------- build request ---------- */
+async function build(r,m){
+  let url=sub_(r.url,m).trim();
+  const hd=[];
+  r.headers.forEach(h=>{if(h.on&&h.k)hd.push([sub_(h.k,m),sub_(h.v,m)])});
+  const has=n=>hd.some(h=>h[0].toLowerCase()===n.toLowerCase());
+  const setH=(n,v)=>{const i=hd.findIndex(h=>h[0].toLowerCase()===n.toLowerCase());if(i>=0)hd[i][1]=v;else hd.push([n,v])};
+  const a=r.auth;
+  if(a.type==='bearer')setH('Authorization','Bearer '+sub_(a.token,m));
+  else if(a.type==='basic')setH('Authorization','Basic '+b64(sub_(a.user,m)+':'+sub_(a.pass,m)));
+  else if(a.type==='apikey'&&a.key){if(a.in==='query')url+=(url.includes('?')?'&':'?')+enc(sub_(a.key,m))+'='+enc(sub_(a.value,m));else setH(sub_(a.key,m),sub_(a.value,m))}
+  if(!/^[a-z][a-z0-9+.-]*:\/\//i.test(url))url='http://'+url;
+  const b=r.body;let body=null,text=null,form=null;
+  if(['json','text','xml'].includes(b.type)&&b.raw!==''){text=sub_(b.raw,m);body=new TextEncoder().encode(text);
+    if(!has('content-type'))hd.push(['Content-Type',{json:'application/json',text:'text/plain',xml:'application/xml'}[b.type]])}
+  else if(b.type==='urlenc'){const p=new URLSearchParams();b.urlenc.forEach(x=>{if(x.on&&x.k)p.append(sub_(x.k,m),sub_(x.v,m))});text=p.toString();body=new TextEncoder().encode(text);
+    if(!has('content-type'))hd.push(['Content-Type','application/x-www-form-urlencoded'])}
+  else if(b.type==='form'){const fd=new FormData();form=[];
+    b.form.forEach(x=>{if(!x.on||!x.k)return;if(x.t==='file'){if(FILES[x.id]){fd.append(sub_(x.k,m),FILES[x.id]);form.push({k:x.k,file:x.v})}}else{fd.append(sub_(x.k,m),sub_(x.v,m));form.push({k:x.k,v:sub_(x.v,m)})}});
+    const rs=new Response(fd);setH('Content-Type',rs.headers.get('Content-Type'));body=new Uint8Array(await rs.arrayBuffer())}
+  return {method:r.method,url,headers:hd,body,text,form};
+}
+
+/* ---------- scripting (pm.* API) ---------- */
+function expect(v){
+  let neg=false;const o={};
+  const fmt=x=>{try{return JSON.stringify(x)}catch(e){return String(x)}};
+  const chk=(c,msg)=>{if(neg?c:!c)throw new Error((neg?'NOT ':'')+msg)};
+  const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+  ['to','be','been','is','that','which','and','has','have','with','at','of','same','but','does','still','deep'].forEach(w=>Object.defineProperty(o,w,{get:()=>o}));
+  Object.defineProperty(o,'not',{get:()=>{neg=!neg;return o}});
+  const flag=(n,fn,msg)=>Object.defineProperty(o,n,{get:()=>{chk(fn(),msg);return o}});
+  flag('ok',()=>!!v,`expected ${fmt(v)} to be truthy`);flag('true',()=>v===true,`expected ${fmt(v)} to be true`);
+  flag('false',()=>v===false,`expected ${fmt(v)} to be false`);flag('null',()=>v===null,`expected ${fmt(v)} to be null`);
+  flag('undefined',()=>v===undefined,`expected ${fmt(v)} to be undefined`);flag('exist',()=>v!=null,`expected value to exist`);
+  flag('empty',()=>v==null||(typeof v==='object'?Object.keys(v).length===0:v.length===0),`expected ${fmt(v)} to be empty`);
+  const fn=(names,f)=>names.forEach(n=>o[n]=(...a)=>{f(...a);return o});
+  fn(['equal','equals','eq'],x=>chk(v===x,`expected ${fmt(v)} to equal ${fmt(x)}`));
+  fn(['eql','eqls'],x=>chk(eq(v,x),`expected ${fmt(v)} to deeply equal ${fmt(x)}`));
+  fn(['above','gt','greaterThan'],x=>chk(v>x,`expected ${fmt(v)} to be above ${x}`));
+  fn(['below','lt','lessThan'],x=>chk(v<x,`expected ${fmt(v)} to be below ${x}`));
+  fn(['least','gte'],x=>chk(v>=x,`expected ${fmt(v)} to be at least ${x}`));
+  fn(['most','lte'],x=>chk(v<=x,`expected ${fmt(v)} to be at most ${x}`));
+  fn(['include','includes','contain','contains'],x=>chk(typeof v==='string'||Array.isArray(v)?v.includes(x):(v&&typeof v==='object'&&Object.entries(x).every(([k,y])=>eq(v[k],y))),`expected ${fmt(v)} to include ${fmt(x)}`));
+  fn(['a','an'],t=>chk((t==='array'?Array.isArray(v):t==='null'?v===null:typeof v===t),`expected ${fmt(v)} to be a ${t}`));
+  o.property=(...a)=>{chk(v!=null&&a[0] in Object(v)&&(a.length<2||eq(v[a[0]],a[1])),`expected ${fmt(v)} to have property ${a[0]}`);return o};
+  fn(['lengthOf','length'],n=>chk(v!=null&&v.length===n,`expected length ${v?.length} to equal ${n}`));
+  fn(['match'],re=>chk(re.test(v),`expected ${fmt(v)} to match ${re}`));
+  fn(['oneOf'],a=>chk(a.includes(v),`expected ${fmt(v)} to be one of ${fmt(a)}`));
+  return o;
+}
+function makePm(work,res,m,logs,tests,pend){
+  const hdrGet=n=>((res?.headers||[]).find(h=>h[0].toLowerCase()===String(n).toLowerCase())||[])[1];
+  const mk=(get,set,unset)=>({get,set,unset,has:k=>get(k)!==undefined});
+  const pm={
+    environment:mk(k=>vars()[k],(k,v)=>{const a=activeEnvVars();const x=a.find(x=>x.k===k);if(x){x.v=String(v);x.on=true}else a.splice(Math.max(0,a.length-1),0,{...newRow(),k,v:String(v)});save()},k=>{const a=activeEnvVars();const i=a.findIndex(x=>x.k===k);if(i>=0)a.splice(i,1);save()}),
+    globals:mk(k=>(S.globals.find(x=>x.k===k)||{}).v,(k,v)=>{const x=S.globals.find(x=>x.k===k);if(x)x.v=String(v);else S.globals.splice(Math.max(0,S.globals.length-1),0,{...newRow(),k,v:String(v)});save()},k=>{const i=S.globals.findIndex(x=>x.k===k);if(i>=0)S.globals.splice(i,1);save()}),
+    variables:mk(k=>({...vars(),...m})[k],(k,v)=>{m[k]=String(v)},k=>{delete m[k]}),
+    request:{get url(){return work.url},set url(v){work.url=v},get method(){return work.method},set method(v){work.method=v},
+      headers:{add:h=>work.headers.unshift({...newRow(),k:h.key,v:h.value}),upsert:h=>{const x=work.headers.find(x=>x.k.toLowerCase()===h.key.toLowerCase());if(x){x.v=h.value;x.on=true}else work.headers.unshift({...newRow(),k:h.key,v:h.value})},remove:k=>{work.headers=work.headers.filter(x=>x.k.toLowerCase()!==k.toLowerCase())},get:k=>(work.headers.find(x=>x.k.toLowerCase()===k.toLowerCase())||{}).v},
+      get body(){return work.body.raw},set body(v){work.body.raw=v}},
+    expect,
+    test:(name,f)=>{pend.push((async()=>{try{await f();tests.push({name,pass:true})}catch(e){tests.push({name,pass:false,msg:e.message})}})())},
+  };
+  if(res){
+    const st=()=>res.status;
+    pm.response={code:res.status,status:res.statusText,responseTime:Math.round(res.time),responseSize:res.size,
+      headers:{get:hdrGet,has:n=>hdrGet(n)!==undefined},text:()=>res.text,json:()=>JSON.parse(res.text),
+      to:{have:{status:c=>{if(typeof c==='number'?st()!==c:res.statusText!==c)throw new Error(`expected response to have status ${c} but got ${st()} ${res.statusText}`)},
+        header:(n,v)=>{const x=hdrGet(n);if(x===undefined||(v!==undefined&&x!==v))throw new Error(`expected response to have header ${n}`)},
+        body:s=>{if(!res.text.includes(s))throw new Error('expected body to contain '+s)}},
+        be:{}}};
+    const g=(n,f,msg)=>Object.defineProperty(pm.response.to.be,n,{get:()=>{if(!f())throw new Error(msg);return true}});
+    g('ok',()=>st()>=200&&st()<300,`expected 2xx but got ${st()}`);g('success',()=>st()>=200&&st()<300,`expected 2xx but got ${st()}`);
+    g('error',()=>st()>=400,`expected 4xx/5xx but got ${st()}`);g('clientError',()=>st()>=400&&st()<500,`expected 4xx but got ${st()}`);g('serverError',()=>st()>=500,`expected 5xx but got ${st()}`);
+  }
+  return pm;
+}
+async function runScript(code,pm,logs,tests,pend){
+  if(!code||!code.trim())return;
+  const con={log:(...a)=>logs.push({t:'log',m:a.map(x=>typeof x==='string'?x:JSON.stringify(x)).join(' ')}),warn:(...a)=>logs.push({t:'warn',m:a.join(' ')}),error:(...a)=>logs.push({t:'err',m:a.join(' ')}),info:(...a)=>logs.push({t:'log',m:a.join(' ')})};
+  try{await new Function('pm','console','expect','return (async()=>{'+code+'\n})()')(pm,con,expect);await Promise.all(pend)}
+  catch(e){logs.push({t:'err',m:'Script error: '+e.message});tests.push({name:'Script error',pass:false,msg:e.message})}
+}
+
+/* ---------- execute ---------- */
+async function execute(r,signal){
+  const logs=[],tests=[],pend=[],m={};
+  const work=clone(r);
+  const pre=makePm(work,null,m,logs,tests,pend);
+  await runScript(r.pre,pre,logs,tests,pend);
+  if(tests.some(t=>!t.pass&&t.name==='Script error'))return {error:'Pre-request script failed:\n'+tests[0].msg,logs,tests};
+  const map={...vars(),...m};
+  const built=await build(work,map);
+  const res={built,logs,tests};
+  const t0=performance.now();
+  try{
+    const resp=await fetch(getProxy()+'/proxy',{method:'POST',signal,headers:{'X-ApiLab':'1','X-ApiLab-Method':built.method,'X-ApiLab-Url':b64(built.url),
+      'X-ApiLab-Headers':b64(built.headers.map(h=>h[0]+': '+String(h[1]).replace(/[\r\n]+/g,' ')).join('\n')),
+      'X-ApiLab-Timeout':String(r.settings.timeout||0),'X-ApiLab-Follow':r.settings.follow?'1':'0','X-ApiLab-Insecure':r.settings.insecure?'1':'0'},body:built.body});
+    if(resp.status===403&&!resp.headers.get('X-ApiLab-Error'))throw new Error('Proxy refused the request. This page\'s origin ('+location.origin+') must be allowed by the proxy: start it with  java -Dapilab.origins='+location.origin+' tools/api-proxy/ApiLab.java  (see README).');
+    const err=resp.headers.get('X-ApiLab-Error');if(err)throw new Error(unb64(err));
+    const buf=new Uint8Array(await resp.arrayBuffer());
+    const status=+resp.headers.get('X-ApiLab-Status');
+    const headers=unb64(resp.headers.get('X-ApiLab-Headers')||'').split('\n').filter(Boolean).map(l=>{const i=l.indexOf(':');return [l.slice(0,i),l.slice(i+1).trim()]});
+    const ct=(headers.find(h=>h[0].toLowerCase()==='content-type')||[,''])[1];
+    Object.assign(res,{status,statusText:STATUS[status]||'',headers,buf,ct,size:buf.length,time:+resp.headers.get('X-ApiLab-Time')||performance.now()-t0,proto:resp.headers.get('X-ApiLab-Proto'),
+      text:/image\/|octet-stream|zip|pdf/i.test(ct)&&!/json|xml|text/i.test(ct)?'':new TextDecoder().decode(buf)});
+    if(!res.text&&buf.length&&!/image\/|pdf|zip/i.test(ct))res.text=new TextDecoder().decode(buf);
+    const post=makePm(work,res,m,logs,tests,pend);
+    await runScript(r.tests,post,logs,tests,pend);
+  }catch(e){res.error=e.name==='AbortError'?'Request cancelled':e instanceof TypeError?'Cannot reach the ApiLab proxy at '+(getProxy()||location.origin)+'.\nStart it from the project folder with:  npm run api-proxy\n(or change the proxy URL in the header bar)':e.message}
+  return res;
+}
+async function sendCurrent(){
+  const r=cur();if(!r||!r.url.trim()){toast('Enter a URL first');return}
+  if(ctrl){ctrl.abort();return}
+  ctrl=new AbortController();$('#send').textContent='Cancel';RESP[r.id]={loading:true};renderResp();
+  const res=await execute(r,ctrl.signal);
+  ctrl=null;$('#send').textContent='Send';RESP[r.id]=res;
+  if(!res.error||res.status){S.history.unshift({id:uid(),ts:Date.now(),status:res.status,time:res.time,req:clone({...r,dirty:undefined})});S.history=S.history.slice(0,100)}
+  save();if(cur()&&cur().id===r.id)renderResp();renderSide();
+}
+
+/* ---------- code generation ---------- */
+const q1=s=>"'"+String(s).replace(/'/g,"'\\''")+"'";
+async function genCode(lang){
+  const r=cur();const b=await build(r,vars());
+  const H=b.form?b.headers.filter(h=>h[0].toLowerCase()!=='content-type'):b.headers;
+  if(lang==='curl'){let s=`curl -X ${b.method} ${q1(b.url)}`;H.forEach(h=>s+=` \\\n  -H ${q1(h[0]+': '+h[1])}`);
+    if(b.form)b.form.forEach(f=>s+=` \\\n  -F ${q1(f.k+'='+(f.file?'@'+f.file:f.v))}`);else if(b.text!==null)s+=` \\\n  --data-raw ${q1(b.text)}`;return s}
+  if(lang==='java'){let s=`HttpClient client = HttpClient.newHttpClient();\nHttpRequest request = HttpRequest.newBuilder()\n    .uri(URI.create(${JSON.stringify(b.url)}))\n`;
+    H.forEach(h=>s+=`    .header(${JSON.stringify(h[0])}, ${JSON.stringify(h[1])})\n`);
+    s+=`    .method(${JSON.stringify(b.method)}, ${b.text!==null?`HttpRequest.BodyPublishers.ofString(${JSON.stringify(b.text)})`:'HttpRequest.BodyPublishers.noBody()'})\n    .build();\n`;
+    if(b.form)s+='// NOTE: multipart/form-data body not generated - build it with a multipart library\n';
+    return s+`HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());\nSystem.out.println(response.statusCode());\nSystem.out.println(response.body());`}
+  if(lang==='fetch'){const o={method:b.method,headers:Object.fromEntries(H)};let s='';
+    if(b.form){s+='const form = new FormData();\n'+b.form.map(f=>`form.append(${JSON.stringify(f.k)}, ${f.file?'/* File: '+f.file+' */ fileInput.files[0]':JSON.stringify(f.v)});`).join('\n')+'\n'}
+    let js=JSON.stringify(o,null,2);if(b.form)js=js.replace(/\n}$/,',\n  "body": form\n}');else if(b.text!==null)js=js.replace(/\n}$/,`,\n  "body": ${JSON.stringify(b.text)}\n}`);
+    return s+`fetch(${JSON.stringify(b.url)}, ${js})\n  .then(r => r.text())\n  .then(console.log);`}
+  if(lang==='python'){let s='import requests\n\n';
+    s+=`response = requests.request(\n    ${JSON.stringify(b.method)},\n    ${JSON.stringify(b.url)},\n    headers=${JSON.stringify(Object.fromEntries(H),null,4).replace(/\n/g,'\n    ')},\n`;
+    if(b.form)s+=`    files={${b.form.map(f=>f.file?`${JSON.stringify(f.k)}: open(${JSON.stringify(f.file)}, "rb")`:`${JSON.stringify(f.k)}: (None, ${JSON.stringify(f.v)})`).join(', ')}},\n`;
+    else if(b.text!==null)s+=`    data=${JSON.stringify(b.text)},\n`;
+    return s+')\nprint(response.status_code)\nprint(response.text)'}
+}
+async function showCode(){
+  const m=modal('Code snippet',`<div class="tbar seg" id="cl">${[['curl','cURL'],['java','Java HttpClient'],['fetch','JS fetch'],['python','Python requests']].map(([k,l],i)=>`<button data-l="${k}" class="${i?'':'on'}">${l}</button>`).join('')}<span class="sp"></span><button id="cc">Copy</button></div><pre class="out nowrap" id="cs" style="max-height:55vh;overflow:auto"></pre>`,{wide:true,hideOk:true});
+  const show=async l=>{$$('#cl button[data-l]',m.el).forEach(b=>b.classList.toggle('on',b.dataset.l===l));try{$('#cs',m.el).textContent=await genCode(l)}catch(e){$('#cs',m.el).textContent='Error: '+e.message}};
+  $$('#cl button[data-l]',m.el).forEach(b=>b.onclick=()=>show(b.dataset.l));$('#cc',m.el).onclick=()=>copy($('#cs',m.el).textContent);show('curl');
+}
+
+/* ---------- cURL import ---------- */
+function tok(s){s=s.replace(/\\\r?\n/g,' ').trim();const out=[];let cur='',q=null,has=false;
+  for(let i=0;i<s.length;i++){const c=s[i];
+    if(q){if(c===q)q=null;else if(q==='"'&&c==='\\'&&i+1<s.length&&'"\\$`'.includes(s[i+1]))cur+=s[++i];else cur+=c}
+    else if(c==="'"||c==='"'){q=c;has=true}
+    else if(/\s/.test(c)){if(cur||has){out.push(cur);cur='';has=false}}
+    else if(c==='\\'&&i+1<s.length)cur+=s[++i];else cur+=c}
+  if(cur||has)out.push(cur);return out}
+function fromCurl(t){
+  const a=tok(t);a.shift();const r=newReq();let data=null,method=null,form=[];r.headers=[];
+  for(let i=0;i<a.length;i++){const x=a[i],nx=()=>a[++i];
+    if(x==='-X'||x==='--request')method=nx().toUpperCase();
+    else if(x==='-H'||x==='--header'){const h=nx(),j=h.indexOf(':');r.headers.push({...newRow(),k:h.slice(0,j).trim(),v:h.slice(j+1).trim()})}
+    else if(['-d','--data','--data-raw','--data-binary','--data-ascii','--data-urlencode'].includes(x))data=(data===null?'':data+'&')+nx();
+    else if(x==='-F'||x==='--form'){const f=nx(),j=f.indexOf('=');const v=f.slice(j+1);form.push({...newRow(),k:f.slice(0,j),v:v.replace(/^@/,''),t:v.startsWith('@')?'file':'text'})}
+    else if(x==='-u'||x==='--user'){const u=nx(),j=u.indexOf(':');r.auth={...r.auth,type:'basic',user:j<0?u:u.slice(0,j),pass:j<0?'':u.slice(j+1)}}
+    else if(x==='-b'||x==='--cookie')r.headers.push({...newRow(),k:'Cookie',v:nx()});
+    else if(x==='-A'||x==='--user-agent')r.headers.push({...newRow(),k:'User-Agent',v:nx()});
+    else if(x==='-k'||x==='--insecure')r.settings.insecure=true;
+    else if(x==='--url')r.url=nx();
+    else if(!x.startsWith('-')&&!r.url)r.url=x;}
+  r.headers.push(newRow());
+  const ct=(r.headers.find(h=>h.k.toLowerCase()==='content-type')||{v:''}).v.toLowerCase();
+  if(form.length){r.body.type='form';r.body.form=[...form,newRow()]}
+  else if(data!==null){if(ct.includes('x-www-form-urlencoded')){r.body.type='urlenc';r.body.urlenc=[...data.split('&').map(p=>{const j=p.indexOf('=');return {...newRow(),k:dec(p.slice(0,j<0?p.length:j)),v:j<0?'':dec(p.slice(j+1))}}),newRow()]}
+    else{r.body.type=ct.includes('xml')?'xml':ct.includes('json')||/^\s*[\[{]/.test(data)?'json':'text';r.body.raw=data}}
+  r.method=method||(data!==null||form.length?'POST':'GET');
+  urlToParams(r);return r;
+}
+
+/* ---------- import / export ---------- */
+function pmItems(items,prefix,out){for(const it of items){if(it.item)pmItems(it.item,prefix+it.name+' / ',out);else out.push(pmReq(it,prefix))}}
+function pmReq(it,prefix){
+  const q=it.request||{};const url=typeof q.url==='string'?q.url:(q.url&&q.url.raw)||'';
+  const r=newReq({name:prefix+it.name,method:(q.method||'GET').toUpperCase(),url});
+  r.headers=[...(q.header||[]).map(h=>({...newRow(),k:h.key,v:h.value,on:!h.disabled})),newRow()];urlToParams(r);
+  const b=q.body;
+  if(b){if(b.mode==='raw'){const l=b.options&&b.options.raw&&b.options.raw.language;r.body.type=l==='xml'?'xml':(l==='json'||/^\s*[\[{]/.test(b.raw||''))?'json':'text';r.body.raw=b.raw||''}
+    else if(b.mode==='urlencoded'){r.body.type='urlenc';r.body.urlenc=[...(b.urlencoded||[]).map(p=>({...newRow(),k:p.key,v:p.value,on:!p.disabled})),newRow()]}
+    else if(b.mode==='formdata'){r.body.type='form';r.body.form=[...(b.formdata||[]).map(p=>({...newRow(),k:p.key,v:p.type==='file'?(p.src||''):p.value,t:p.type==='file'?'file':'text',on:!p.disabled})),newRow()]}}
+  const A=q.auth;if(A){const g=(arr,k)=>((arr||[]).find(x=>x.key===k)||{}).value||'';
+    if(A.type==='bearer')r.auth={...r.auth,type:'bearer',token:g(A.bearer,'token')};
+    else if(A.type==='basic')r.auth={...r.auth,type:'basic',user:g(A.basic,'username'),pass:g(A.basic,'password')};
+    else if(A.type==='apikey')r.auth={...r.auth,type:'apikey',key:g(A.apikey,'key'),value:g(A.apikey,'value'),in:g(A.apikey,'in')==='query'?'query':'header'}}
+  (it.event||[]).forEach(e=>{const c=(e.script&&e.script.exec||[]).join('\n');if(e.listen==='prerequest')r.pre=c;if(e.listen==='test')r.tests=c});
+  return r;
+}
+function importText(t){
+  t=t.trim();if(!t)throw new Error('Nothing to import');
+  if(/^curl\b/i.test(t)){const r=fromCurl(t);openReq(r);return 'Imported cURL request into a new tab'}
+  let j;try{j=JSON.parse(t)}catch(e){throw new Error('Not valid JSON or a cURL command')}
+  if(j.info&&j.item){const rs=[];pmItems(j.item,'',rs);const c={id:uid(),name:j.info.name||'Imported',open:true,requests:rs};rs.forEach(r=>r.collectionId=c.id);S.collections.push(c);renderSide();save();return `Imported collection "${c.name}" (${rs.length} requests)`}
+  if(j.apilab){(j.collections||[]).forEach(c=>{if(S.collections.some(x=>x.id===c.id))c.id=uid();c.requests.forEach(r=>r.collectionId=c.id);S.collections.push(c)});
+    (j.envs||[]).forEach(e=>{if(S.envs.some(x=>x.id===e.id))e.id=uid();S.envs.push(e)});renderSide();renderEnvSel();save();return 'Imported ApiLab backup'}
+  if(Array.isArray(j.values)){S.envs.push({id:uid(),name:j.name||'Imported env',vars:[...j.values.map(v=>({...newRow(),k:v.key,v:v.value,on:v.enabled!==false})),newRow()]});renderEnvSel();save();return `Imported environment "${j.name||'Imported env'}"`}
+  throw new Error('Unrecognised format (supported: cURL, Postman collection v2.x, Postman environment, ApiLab backup)');
+}
+
+/* ---------- rendering: sidebar ---------- */
+function renderSide(){
+  const sb=$('#sbar'),list=$('#sideList');
+  $$('.stabs button').forEach(b=>b.classList.toggle('on',b.dataset.s===S.sideTab));
+  if(S.sideTab==='history'){
+    sb.innerHTML='<button id="clrH" class="ghost">Clear history</button>';
+    $('#clrH').onclick=()=>{S.history=[];save();renderSide()};
+    list.innerHTML=S.history.length?S.history.map(h=>`<div class="itm" data-h="${h.id}"><span class="m ${h.req.method}">${h.req.method}</span><span class="nm" title="${esc(h.req.url)}">${esc(h.req.url)}</span><span class="pill s${String(h.status||5)[0]}" style="font-size:10px">${h.status||'ERR'}</span></div>`).join(''):'<div class="empty">No requests yet</div>';
+  }else{
+    sb.innerHTML='<button id="newCol">+ Collection</button><button id="newReqB">+ Request</button>';
+    $('#newCol').onclick=()=>{const n=prompt('Collection name');if(n){S.collections.push({id:uid(),name:n,open:true,requests:[]});save();renderSide()}};
+    $('#newReqB').onclick=()=>openReq(newReq());
+    list.innerHTML=S.collections.length?S.collections.map(c=>`<div class="col"><div class="colh" data-c="${c.id}"><span>${c.open?'▾':'▸'}</span><span class="nm">${esc(c.name)}</span><span class="acts"><button class="x" data-a="run" title="Run all">▶</button><button class="x" data-a="ren" title="Rename">✎</button><button class="x" data-a="exp" title="Export">⭳</button><button class="x" data-a="del" title="Delete">✕</button></span></div>${c.open?c.requests.map(r=>`<div class="itm ${S.active===r.id?'on':''}" data-r="${r.id}" data-c="${c.id}"><span class="m ${r.method}">${r.method}</span><span class="nm">${esc(r.name)}</span><span class="acts"><button class="x" data-a="dup" title="Duplicate">⧉</button><button class="x" data-a="delr" title="Delete">✕</button></span></div>`).join('')||'<div class="itm muted">Empty</div>':''}</div>`).join(''):'<div class="empty">Create a collection, or Import a Postman collection / cURL</div>';
+  }
+}
+$('.stabs').onclick=e=>{const b=e.target.closest('button');if(b){S.sideTab=b.dataset.s;renderSide()}};
+$('#sideList').onclick=e=>{
+  const h=e.target.closest('[data-h]');if(h){const x=S.history.find(x=>x.id===h.dataset.h);if(x)openReq({...clone(x.req),id:uid(),collectionId:null});return}
+  const act=e.target.closest('[data-a]')?.dataset.a;
+  const cEl=e.target.closest('[data-c]');const c=cEl&&S.collections.find(c=>c.id===cEl.dataset.c);
+  const rEl=e.target.closest('[data-r]');const r=rEl&&c&&c.requests.find(r=>r.id===rEl.dataset.r);
+  if(r){
+    if(act==='delr'){if(confirm('Delete request?')){c.requests=c.requests.filter(x=>x!==r);save();renderSide()}}
+    else if(act==='dup'){const n=clone(r);n.id=uid();n.name+=' copy';c.requests.splice(c.requests.indexOf(r)+1,0,n);save();renderSide()}
+    else openReq(clone(r),true);return}
+  if(c){
+    if(act==='del'){if(confirm(`Delete collection "${c.name}"?`)){S.collections=S.collections.filter(x=>x!==c);save();renderSide()}}
+    else if(act==='ren'){const n=prompt('Rename collection',c.name);if(n){c.name=n;save();renderSide()}}
+    else if(act==='exp')download(c.name.replace(/\W+/g,'_')+'.apilab.json',JSON.stringify({apilab:1,collections:[c],envs:[]},null,2),'application/json');
+    else if(act==='run')runner(c);
+    else{c.open=!c.open;save();renderSide()}}
+};
+
+/* ---------- tabs ---------- */
+function openReq(r,fromColl){
+  const ex=S.tabs.find(t=>t.id===r.id);
+  if(ex){S.active=ex.id}else{if(!r.id)r.id=uid();if(!r.params||!r.params.length)r.params=[newRow()];S.tabs.push(r);S.active=r.id}
+  renderAll();save();
+}
+function closeTab(id){
+  const t=S.tabs.find(t=>t.id===id);if(t&&t.dirty&&!confirm('Close tab with unsaved changes?'))return;
+  const i=S.tabs.findIndex(t=>t.id===id);S.tabs.splice(i,1);
+  if(!S.tabs.length)S.tabs.push(newReq());
+  if(S.active===id)S.active=S.tabs[Math.min(i,S.tabs.length-1)].id;
+  renderAll();save();
+}
+function tabTitle(t){return t.name!=='New Request'?t.name:(t.url?t.url.replace(/^https?:\/\//,'').slice(0,28):'New Request')}
+function renderTabs(){
+  $('#tabs').innerHTML=S.tabs.map(t=>`<div class="tab ${t.id===S.active?'on':''} ${t.dirty?'dirty':''}" data-t="${t.id}"><span class="m ${t.method}" style="min-width:0">${t.method}</span><span class="nm">${esc(tabTitle(t))}</span><button class="x" data-x="${t.id}">✕</button></div>`).join('')+'<div class="tab" id="addTab" style="color:var(--accent);font-weight:700">+</div>';
+}
+$('#tabs').onclick=e=>{
+  if(e.target.closest('#addTab'))return openReq(newReq());
+  const x=e.target.closest('[data-x]');if(x)return closeTab(x.dataset.x);
+  const t=e.target.closest('[data-t]');if(t){S.active=t.dataset.t;renderAll()}
+};
+$('#tabs').onauxclick=e=>{const t=e.target.closest('[data-t]');if(t&&e.button===1)closeTab(t.dataset.t)};
+
+/* ---------- request pane ---------- */
+const SUBS=[['params','Params'],['auth','Authorization'],['headers','Headers'],['body','Body'],['pre','Pre-request'],['tests','Tests'],['settings','Settings']];
+function renderReq(){
+  const r=cur();
+  $('#method').innerHTML=METHODS.map(m=>`<option ${m===r.method?'selected':''}>${m}</option>`).join('');
+  $('#url').value=r.url;
+  $('#subs').innerHTML=SUBS.map(([k,l])=>{
+    let c='';if(k==='params'){const n=r.params.filter(p=>p.on&&p.k).length;if(n)c=` <span class="cnt">(${n})</span>`}
+    if(k==='headers'){const n=r.headers.filter(p=>p.on&&p.k).length;if(n)c=` <span class="cnt">(${n})</span>`}
+    if(k==='body'&&r.body.type!=='none')c=' <span class="cnt">●</span>';
+    if((k==='pre'&&r.pre.trim())||(k==='tests'&&r.tests.trim()))c=' <span class="cnt">●</span>';
+    return `<button data-k="${k}" class="${k===sub?'on':''}">${l}${c}</button>`}).join('');
+  renderPane();
+}
+$('#subs').onclick=e=>{const b=e.target.closest('button');if(b){sub=b.dataset.k;renderReq()}};
+const tabKey=ta=>ta.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();const s=ta.selectionStart;ta.setRangeText('  ',s,ta.selectionEnd,'end')}});
+function renderPane(){
+  const r=cur(),p=$('#reqPane');
+  if(sub==='params'){p.innerHTML='<div class="muted" style="margin-bottom:6px">Query parameters (kept in sync with the URL)</div><div id="kvp"></div>';
+    kv($('#kvp'),r.params,{onChange:()=>{paramsToUrl(r);$('#url').value=r.url;touch()}})}
+  else if(sub==='headers'){p.innerHTML='<div id="kvh"></div>';kv($('#kvh'),r.headers,{hn:true,onChange:()=>{touch();updSubCnt()}})}
+  else if(sub==='auth'){const a=r.auth;
+    p.innerHTML=`<div class="row"><label>Type</label><select id="at">${[['none','No Auth'],['bearer','Bearer Token'],['basic','Basic Auth'],['apikey','API Key']].map(([k,l])=>`<option value="${k}" ${a.type===k?'selected':''}>${l}</option>`).join('')}</select></div><div id="af"></div>`;
+    const f=()=>{const A=$('#af');
+      if(a.type==='bearer')A.innerHTML=`<div class="row"><label>Token</label><input id="a1" style="flex:1" value="${esc(a.token)}" placeholder="{{token}}"></div>`;
+      else if(a.type==='basic')A.innerHTML=`<div class="row"><label>Username</label><input id="a1" value="${esc(a.user)}"></div><div class="row"><label>Password</label><input id="a2" type="password" value="${esc(a.pass)}"></div>`;
+      else if(a.type==='apikey')A.innerHTML=`<div class="row"><label>Key</label><input id="a1" value="${esc(a.key)}" placeholder="X-Api-Key"></div><div class="row"><label>Value</label><input id="a2" value="${esc(a.value)}"></div><div class="row"><label>Add to</label><select id="a3"><option value="header" ${a.in==='header'?'selected':''}>Header</option><option value="query" ${a.in==='query'?'selected':''}>Query params</option></select></div>`;
+      else A.innerHTML='<div class="muted">This request does not use any authorization.</div>';
+      const map={bearer:['token'],basic:['user','pass'],apikey:['key','value']}[a.type]||[];
+      map.forEach((k,i)=>{const el=$('#a'+(i+1));if(el)el.oninput=()=>{a[k]=el.value;touch()}});
+      const s=$('#a3');if(s)s.onchange=()=>{a.in=s.value;touch()}};
+    $('#at').onchange=e=>{a.type=e.target.value;f();touch()};f()}
+  else if(sub==='body'){const b=r.body;
+    p.innerHTML=`<div class="row"><select id="bt">${[['none','none'],['json','raw · JSON'],['text','raw · Text'],['xml','raw · XML'],['form','form-data'],['urlenc','x-www-form-urlencoded']].map(([k,l])=>`<option value="${k}" ${b.type===k?'selected':''}>${l}</option>`).join('')}</select><button id="beaut" style="display:${b.type==='json'?'':'none'}">Beautify</button></div><div id="bb" style="height:calc(100% - 40px)"></div>`;
+    const f=()=>{const B=$('#bb');
+      if(b.type==='none')B.innerHTML='<div class="muted">This request has no body.</div>';
+      else if(b.type==='form'){B.style.height='auto';B.innerHTML='<div id="kvb"></div>';kv($('#kvb'),b.form,{form:true,onChange:touch})}
+      else if(b.type==='urlenc'){B.style.height='auto';B.innerHTML='<div id="kvb"></div>';kv($('#kvb'),b.urlenc,{onChange:touch})}
+      else{B.innerHTML='<textarea class="code" id="raw" spellcheck="false"></textarea>';const ta=$('#raw');ta.value=b.raw;ta.oninput=()=>{b.raw=ta.value;touch()};tabKey(ta)}};
+    $('#bt').onchange=e=>{b.type=e.target.value;renderPane();touch();renderReqSubsOnly()};
+    $('#beaut').onclick=()=>{try{b.raw=JSON.stringify(JSON.parse(b.raw),null,2);$('#raw').value=b.raw;touch()}catch(e){toast('Invalid JSON: '+e.message)}};f()}
+  else if(sub==='pre'||sub==='tests'){const k=sub;
+    p.innerHTML=`<div class="muted" style="margin-bottom:6px">${k==='pre'?'Runs before the request. ':'Runs after the response. '}Postman-style API: <code>pm.environment.set("k","v")</code>, <code>pm.test("name", () =&gt; {…})</code>, <code>pm.expect(x).to.equal(y)</code>, <code>pm.response.json()</code>, <code>pm.response.to.have.status(200)</code>. Press Help for more.</div><div style="height:calc(100% - 50px)"><textarea class="code" id="scr" spellcheck="false" placeholder="${k==='pre'?'// e.g. pm.environment.set(&quot;ts&quot;, Date.now())':'pm.test(&quot;Status is 200&quot;, () =&gt; pm.response.to.have.status(200));'}"></textarea></div>`;
+    const ta=$('#scr');ta.value=r[k];ta.oninput=()=>{r[k]=ta.value;touch()};tabKey(ta)}
+  else if(sub==='settings'){const s=r.settings;
+    p.innerHTML=`<div class="row"><label>Name</label><input id="rn" style="width:300px" value="${esc(r.name)}"></div><div class="row"><label>Timeout (ms)</label><input id="to" type="number" style="width:120px" value="${s.timeout}"> <span class="muted">0 = no timeout</span></div><div class="row"><label>Redirects</label><label style="color:var(--text)"><input type="checkbox" id="fo" ${s.follow?'checked':''}> Follow redirects</label></div><div class="row"><label>SSL</label><label style="color:var(--text)"><input type="checkbox" id="in" ${s.insecure?'checked':''}> Ignore SSL certificate errors (internal/self-signed hosts)</label></div>`;
+    $('#rn').oninput=e=>{r.name=e.target.value||'New Request';touch()};$('#to').oninput=e=>{s.timeout=+e.target.value||0;touch()};$('#fo').onchange=e=>{s.follow=e.target.checked;touch()};$('#in').onchange=e=>{s.insecure=e.target.checked;touch()}}
+}
+function updSubCnt(){const r=cur();const b=$('#subs button[data-k=headers]');if(b){const n=r.headers.filter(p=>p.on&&p.k).length;b.innerHTML='Headers'+(n?` <span class="cnt">(${n})</span>`:'')}}
+function renderReqSubsOnly(){const r=cur();const b=$('#subs button[data-k=body]');if(b)b.innerHTML='Body'+(r.body.type!=='none'?' <span class="cnt">●</span>':'')}
+
+$('#method').onchange=e=>{cur().method=e.target.value;touch()};
+$('#url').oninput=e=>{const r=cur();r.url=e.target.value;urlToParams(r);touch();if(sub==='params')renderPane()};
+$('#url').onpaste=e=>{const t=(e.clipboardData.getData('text')||'').trim();if(/^curl\b/i.test(t)){e.preventDefault();const n=fromCurl(t),r=cur();Object.assign(r,{...n,id:r.id,collectionId:r.collectionId,name:r.name,dirty:true});renderAll();toast('cURL imported')}};
+$('#url').onkeydown=e=>{if(e.key==='Enter')sendCurrent()};
+$('#send').onclick=sendCurrent;
+$('#codeBtn').onclick=showCode;
+$('#saveBtn').onclick=()=>saveReq();
+
+function saveReq(){
+  const r=cur();
+  const store=()=>{const c=S.collections.find(c=>c.id===r.collectionId);if(!c)return false;
+    const copy=clone({...r,dirty:undefined});const i=c.requests.findIndex(x=>x.id===r.id);if(i>=0)c.requests[i]=copy;else c.requests.push(copy);r.dirty=false;save();renderAll();toast('Saved');return true};
+  if(r.collectionId&&store())return;
+  const opts=S.collections.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')+'<option value="__new">+ New collection…</option>';
+  modal('Save request',`<div class="row"><label>Name</label><input id="sn" style="flex:1" value="${esc(r.name==='New Request'?(r.url||'New Request'):r.name)}"></div><div class="row"><label>Collection</label><select id="sc" style="flex:1">${opts}</select></div><div class="row" id="nr" style="display:${S.collections.length?'none':'flex'}"><label>New name</label><input id="scn" style="flex:1" placeholder="My API"></div>`,
+    {okText:'Save',onOk:d=>{
+      let cid=$('#sc',d).value;
+      if(cid==='__new'||!S.collections.length){const n=$('#scn',d).value.trim();if(!n){toast('Enter a collection name');return false}const c={id:uid(),name:n,open:true,requests:[]};S.collections.push(c);cid=c.id}
+      r.name=$('#sn',d).value.trim()||'New Request';r.collectionId=cid;store()}});
+  const sc=$('#sc');if(sc)sc.onchange=()=>$('#nr').style.display=sc.value==='__new'?'flex':'none';
+  if(!S.collections.length)$('#sc').value='__new';
+}
+
+/* ---------- response pane ---------- */
+function hl(json){return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,m=>{let c='n';if(m[0]==='"')c=m.endsWith(':')?'k':'s';else if(m==='true'||m==='false')c='b';else if(m==='null')c='z';return `<span class="j${c}">${m}</span>`})}
+function fmtSize(n){return n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(2)+' MB'}
+function renderResp(){
+  const r=cur(),res=RESP[r.id],st=$('#rstat'),rs=$('#rsubs'),p=$('#respPane');
+  if(!res){st.innerHTML='';rs.innerHTML='';p.innerHTML='<div class="empty">Hit <b>Send</b> (Ctrl+Enter) to get a response</div>';return}
+  if(res.loading){st.innerHTML='<span class="muted">Sending…</span>';rs.innerHTML='';p.innerHTML='';return}
+  if(res.error&&!res.status){st.innerHTML='<span class="pill err">Error</span>';rs.innerHTML=`<button class="${rsub==='console'?'on':''}" data-r="console">Console</button><button class="${rsub!=='console'?'on':''}" data-r="body">Details</button>`;
+    p.innerHTML=rsub==='console'?consoleHtml(res):`<pre class="errbox">${esc(res.error)}</pre><div class="muted" style="margin-top:12px">Is the URL reachable from this machine? For internal hosts with self-signed certificates tick “Ignore SSL certificate errors” under Settings.</div>`;return}
+  const pass=res.tests.filter(t=>t.pass).length;
+  const cookies=res.headers.filter(h=>h[0].toLowerCase()==='set-cookie');
+  st.innerHTML=`<span class="pill s${String(res.status)[0]}">${res.status} ${esc(res.statusText)}</span><span>Time: <b>${Math.round(res.time)} ms</b></span><span>Size: <b>${fmtSize(res.size)}</b></span><span class="muted">${res.proto||''}</span><span class="sp"></span>`;
+  rs.innerHTML=[['body','Body'],['headers',`Headers (${res.headers.length})`],['cookies',`Cookies (${cookies.length})`],['tests',`Tests${res.tests.length?` (<span class="${pass===res.tests.length?'pass':'fail'}">${pass}/${res.tests.length}</span>)`:''}`],['console',`Console${res.logs.length?` (${res.logs.length})`:''}`]].map(([k,l])=>`<button data-r="${k}" class="${k===rsub?'on':''}">${l}</button>`).join('');
+  if(rsub==='headers')p.innerHTML=`<table class="t"><tr><th style="width:30%">Name</th><th>Value</th></tr>${res.headers.map(h=>`<tr><td><b>${esc(h[0])}</b></td><td>${esc(h[1])}</td></tr>`).join('')}</table>`;
+  else if(rsub==='cookies')p.innerHTML=cookies.length?`<table class="t"><tr><th>Name</th><th>Value</th><th>Attributes</th></tr>${cookies.map(c=>{const parts=c[1].split(';');const [n,...v]=parts[0].split('=');return `<tr><td><b>${esc(n)}</b></td><td>${esc(v.join('='))}</td><td>${esc(parts.slice(1).join(';').trim())}</td></tr>`}).join('')}</table>`:'<div class="empty">No cookies in this response</div>';
+  else if(rsub==='tests')p.innerHTML=res.tests.length?res.tests.map(t=>`<div class="${t.pass?'pass':'fail'}">${t.pass?'✔ PASS':'✘ FAIL'} &nbsp;${esc(t.name)}${t.msg?` <span class="muted">— ${esc(t.msg)}</span>`:''}</div>`).join(''):'<div class="empty">No tests. Add some under the Tests tab of the request.</div>';
+  else if(rsub==='console')p.innerHTML=consoleHtml(res);
+  else bodyView(res,p);
+}
+function consoleHtml(res){return res.logs.length?`<pre class="out">${res.logs.map(l=>`<span class="${l.t==='err'?'fail':l.t==='warn'?'':'muted'}">${esc(l.m)}</span>`).join('\n')}</pre>`:'<div class="empty">Nothing logged. Use console.log() in scripts.</div>'}
+function bodyView(res,p){
+  const ct=res.ct.toLowerCase();let isJson=/json/.test(ct);let pretty=res.text;
+  if(!isJson&&/^\s*[\[{]/.test(res.text)){try{JSON.parse(res.text);isJson=true}catch(e){}}
+  if(isJson){try{pretty=JSON.stringify(JSON.parse(res.text),null,2)}catch(e){isJson=false}}
+  const isImg=/^image\//.test(ct),isHtml=/html/.test(ct);
+  if(!res.size){p.innerHTML='<div class="empty">This response has no body</div>';return}
+  const big=res.text.length>2e6;
+  p.innerHTML=`<div class="tbar">${isImg?'':`<span class="seg"><button data-v="pretty" class="${rview==='pretty'?'on':''}">Pretty</button><button data-v="raw" class="${rview==='raw'?'on':''}">Raw</button>${isHtml?`<button data-v="preview" class="${rview==='preview'?'on':''}">Preview</button>`:''}</span>`}<span class="sp"></span><button id="cpb">Copy</button><button id="svb">Save to file</button></div><div id="bv"></div>`;
+  const bv=$('#bv');
+  if(isImg){const u=URL.createObjectURL(new Blob([res.buf],{type:ct}));bv.innerHTML=`<img class="prev" src="${u}">`}
+  else if(!res.text&&res.size)bv.innerHTML=`<div class="muted">Binary response (${fmtSize(res.size)}, ${esc(res.ct||'unknown type')}). Use “Save to file”.</div>`;
+  else if(rview==='preview'&&isHtml){bv.innerHTML='<iframe class="prev" sandbox></iframe>';$('iframe',bv).srcdoc=res.text}
+  else if(big)bv.innerHTML=`<div class="muted">Large response – showing first 2 MB as raw text.</div><pre class="out">${esc(res.text.slice(0,2e6))}</pre>`;
+  else if(rview==='pretty'&&isJson)bv.innerHTML=`<pre class="out">${hl(pretty)}</pre>`;
+  else bv.innerHTML=`<pre class="out">${esc(rview==='pretty'?pretty:res.text)}</pre>`;
+  $('#cpb').onclick=()=>copy(isJson&&rview==='pretty'?pretty:res.text);
+  $('#svb').onclick=()=>download('response'+(isJson?'.json':isHtml?'.html':/xml/.test(ct)?'.xml':/image\/(\w+)/.test(ct)?'.'+RegExp.$1:'.txt'),res.buf,ct||undefined);
+  $$('[data-v]',p).forEach(b=>b.onclick=()=>{rview=b.dataset.v;renderResp()});
+}
+$('#rsubs').onclick=e=>{const b=e.target.closest('button');if(b){rsub=b.dataset.r;renderResp()}};
+
+/* ---------- environments ---------- */
+function renderEnvSel(){
+  $('#envSel').innerHTML='<option value="">No environment</option>'+S.envs.map(e=>`<option value="${e.id}" ${e.id===S.activeEnv?'selected':''}>${esc(e.name)}</option>`).join('');
+}
+(()=>{const p=$('#proxyUrl');p.value=getProxy()||location.origin;p.placeholder='http://localhost:5050';
+  p.onchange=()=>{try{const v=p.value.trim().replace(/\/+$/,'');if(!v||v===location.origin&&!embedded)localStorage.removeItem(PROXY_KEY);else localStorage.setItem(PROXY_KEY,v)}catch(e){}toast('Proxy set to '+(getProxy()||location.origin))}})();
+$('#envSel').onchange=e=>{S.activeEnv=e.target.value;save()};
+$('#envBtn').onclick=()=>{
+  let sel='__g';
+  const m=modal('Environments & variables',`<div class="envl"><div class="lft"><div id="el"></div><div style="margin-top:8px;display:flex;gap:6px"><button id="ea">+ Add</button><button id="ed">Delete</button></div></div><div class="rgt"><div class="row"><label>Name</label><input id="en" style="flex:1"></div><div class="muted" style="margin-bottom:6px">Use as <code>{{name}}</code> in URL, headers, auth and body. Built-ins: <code>{{$guid}}</code> <code>{{$timestamp}}</code> <code>{{$randomInt}}</code></div><div id="ek"></div></div></div>`,{wide:true,hideOk:true});
+  const draw=()=>{
+    $('#el',m.el).innerHTML=`<div class="itm ${sel==='__g'?'on':''}" data-id="__g">🌐 Globals</div>`+S.envs.map(e=>`<div class="itm ${sel===e.id?'on':''}" data-id="${e.id}">${esc(e.name)}${e.id===S.activeEnv?' <span class="cnt pass">●</span>':''}</div>`).join('');
+    const env=S.envs.find(e=>e.id===sel);const rows=env?env.vars:S.globals;
+    $('#en',m.el).value=env?env.name:'Globals';$('#en',m.el).disabled=!env;
+    kv($('#ek',m.el),rows,{onChange:()=>save()});
+  };
+  $('#el',m.el).onclick=e=>{const i=e.target.closest('[data-id]');if(i){sel=i.dataset.id;draw()}};
+  $('#en',m.el).oninput=e=>{const env=S.envs.find(x=>x.id===sel);if(env){env.name=e.target.value;save();renderEnvSel();$$('#el .itm',m.el).forEach(i=>{if(i.dataset.id===sel)i.firstChild.textContent=env.name})}};
+  $('#ea',m.el).onclick=()=>{const e={id:uid(),name:'New environment',vars:[newRow()]};S.envs.push(e);sel=e.id;if(!S.activeEnv)S.activeEnv=e.id;renderEnvSel();save();draw()};
+  $('#ed',m.el).onclick=()=>{if(sel==='__g')return;if(!confirm('Delete this environment?'))return;S.envs=S.envs.filter(e=>e.id!==sel);if(S.activeEnv===sel)S.activeEnv='';sel='__g';renderEnvSel();save();draw()};
+  draw();
+};
+
+/* ---------- import/export/help ---------- */
+$('#impBtn').onclick=()=>{
+  const m=modal('Import',`<div class="muted" style="margin-bottom:8px">Paste a <b>cURL command</b>, a <b>Postman collection (v2.x)</b>, a <b>Postman environment</b>, or an ApiLab backup — or pick a file.</div><textarea id="it" rows="12" spellcheck="false"></textarea><div style="margin-top:8px"><input type="file" id="if" accept=".json,.txt"></div>`,{okText:'Import',onOk:d=>{try{toast(importText($('#it',d).value))}catch(e){toast(e.message);return false}}});
+  $('#if',m.el).onchange=async e=>{const f=e.target.files[0];if(f)$('#it',m.el).value=await f.text()};
+};
+$('#expBtn').onclick=()=>download('apilab-backup.json',JSON.stringify({apilab:1,collections:S.collections,envs:S.envs},null,2),'application/json');
+$('#helpBtn').onclick=()=>modal('Help',`<b>Shortcuts</b><br>Ctrl+Enter – send &nbsp; Ctrl+S – save request &nbsp; Enter in URL – send<br><br>
+<b>Scripts</b> (Pre-request / Tests tabs, Postman-compatible subset)<pre class="out nowrap">pm.environment.set("token", pm.response.json().access_token);
+pm.environment.get("token");   pm.variables.set("k","v");   pm.globals.set("k","v");
+pm.request.headers.add({key:"X-Trace", value: pm.variables.get("id")});
+
+pm.test("200 and fast", () =&gt; {
+  pm.response.to.have.status(200);
+  pm.expect(pm.response.responseTime).to.be.below(800);
+});
+const body = pm.response.json();
+pm.expect(body).to.have.property("id");
+pm.expect(body.items).to.be.an("array").and.have.lengthOf(3);
+pm.response.headers.get("Content-Type");
+console.log("hello");</pre>
+<b>Tips</b><br>• Paste a cURL command into the URL box to convert it.<br>• Postman collections export (v2.1) can be imported; scripts and auth are kept.<br>• Your data is stored in this browser (localStorage) for http://localhost:PORT — keep using the same port, and use “Export all” for backups.<br>• Unreachable HTTPS host with self-signed cert? Settings → ignore SSL errors.<br>• Corporate proxy: start with <code>java -Djava.net.useSystemProxies=true tools/api-proxy/ApiLab.java</code> (or <code>npm run api-proxy</code> after setting JAVA_TOOL_OPTIONS)`,{wide:true,hideOk:true});
+
+/* ---------- collection runner ---------- */
+function runner(c){
+  const m=modal(`Run: ${esc(c.name)}`,`<div class="tbar"><button class="pri" id="go">▶ Run ${c.requests.length} requests</button><span id="sum" class="muted"></span></div><table class="t" id="rt"><tr><th>Request</th><th>Status</th><th>Time</th><th>Tests</th></tr></table>`,{wide:true,hideOk:true});
+  $('#go',m.el).onclick=async()=>{
+    const tb=$('#rt',m.el);tb.innerHTML='<tr><th>Request</th><th>Status</th><th>Time</th><th>Tests</th></tr>';let tp=0,tt=0,ok=0;
+    for(const r of c.requests){const tr=document.createElement('tr');tr.innerHTML=`<td><span class="m ${r.method}">${r.method}</span> ${esc(r.name)}</td><td colspan="3" class="muted">running…</td>`;tb.appendChild(tr);
+      const res=await execute(clone(r));const p=res.tests.filter(t=>t.pass).length;tp+=p;tt+=res.tests.length;if(res.status)ok++;
+      tr.innerHTML=`<td><span class="m ${r.method}">${r.method}</span> ${esc(r.name)}</td><td>${res.status?`<span class="pill s${String(res.status)[0]}">${res.status}</span>`:`<span class="fail">${esc((res.error||'').split('\n')[0])}</span>`}</td><td>${res.time?Math.round(res.time)+' ms':''}</td><td>${res.tests.length?`<span class="${p===res.tests.length?'pass':'fail'}">${p}/${res.tests.length}</span>`:'—'}${res.tests.filter(t=>!t.pass).map(t=>`<div class="fail" style="font-size:11px">✘ ${esc(t.name)}${t.msg?': '+esc(t.msg):''}</div>`).join('')}</td>`;
+      $('#sum',m.el).textContent=`${ok}/${c.requests.length} responded · tests ${tp}/${tt} passed`}
+    save();
+  };
+}
+
+/* ---------- layout / keyboard ---------- */
+function renderAll(){renderSide();renderTabs();renderReq();renderResp()}
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();sendCurrent()}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveReq()}
+});
+(()=>{const sp=$('#split'),rq=$('#reqSec');let drag=false;
+  sp.onmousedown=()=>{drag=true;document.body.style.userSelect='none'};
+  document.onmouseup=()=>{drag=false;document.body.style.userSelect=''};
+  document.onmousemove=e=>{if(!drag)return;const top=$('#tabs').getBoundingClientRect().bottom;const h=Math.max(140,Math.min(window.innerHeight-top-160,e.clientY-top));rq.style.height=h+'px'}})();
+
+load();
+if(!S.tabs.length){const r=newReq();S.tabs.push(r);S.active=r.id}
+if(!S.tabs.find(t=>t.id===S.active))S.active=S.tabs[0].id;
+renderEnvSel();renderAll();
+</script>
+</body>
+</html>
