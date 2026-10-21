@@ -1,10 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Download, Network, RotateCcw } from 'lucide-react';
 
 const API_CLIENT_STORAGE_KEY = 'apilab.v1';
 
 export const ApiClientWrapper: React.FC = () => {
   const [iframeKey, setIframeKey] = useState<number>(0);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Keep the embedded client's light/dark theme in sync with the toolbox.
+  const postTheme = () => {
+    const theme = document.querySelector('.app-container')?.getAttribute('data-theme');
+    if (theme === 'dark' || theme === 'light') {
+      iframeRef.current?.contentWindow?.postMessage({ type: 'apilab-theme', theme }, window.location.origin);
+    }
+  };
+
+  useEffect(() => {
+    const el = document.querySelector('.app-container');
+    if (!el) return;
+    const observer = new MutationObserver(postTheme);
+    observer.observe(el, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Export every collection and environment saved by the API client.
   const handleExport = () => {
@@ -68,6 +85,8 @@ export const ApiClientWrapper: React.FC = () => {
       <div className="card" style={{ flex: 1, padding: 0, overflow: 'hidden', minHeight: '400px', display: 'flex', flexDirection: 'column' }}>
         <iframe
           key={iframeKey}
+          ref={iframeRef}
+          onLoad={postTheme}
           src={`${import.meta.env.BASE_URL}api-lab/index.html`}
           title="API Client"
           referrerPolicy="no-referrer"

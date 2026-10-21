@@ -6,11 +6,15 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; frame-src about: blob:; connect-src 'self' http://localhost:* http://127.0.0.1:*; base-uri 'none'; form-action 'none';">
 <title>ApiLab</title>
 <style>
-:root{--bg:#1b1d23;--panel:#23262e;--panel2:#2b2f38;--line:#3a3f4b;--text:#e6e8ee;--muted:#9aa1b0;--accent:#ff6c37;--blue:#4f8cff;--ok:#3fb950;--warn:#d29922;--err:#f85149;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-@media(prefers-color-scheme:light){:root{--bg:#f5f6f8;--panel:#fff;--panel2:#eef0f4;--line:#d6dae1;--text:#1f2430;--muted:#6a7282}}
+:root{--bg:#1b1d23;--panel:#23262e;--panel2:#2b2f38;--line:#3a3f4b;--text:#e6e8ee;--muted:#9aa1b0;--accent:#ff6c37;--blue:#4f8cff;--ok:#3fb950;--warn:#d29922;--err:#f85149;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+ --c-key:#79b8ff;--c-str:#9ecb7b;--c-num:#f0a05a;--c-bool:#c792ea;--c-null:#8b93a3;--c-punc:#8b93a3;--c-kw:#c792ea;--c-cmt:#7d8590;--c-tag:#79b8ff;--c-attr:#f0a05a;
+ --c-var:#ffab70;--c-varbg:rgba(255,108,55,.20);--c-miss:#ff7b72;--c-missbg:rgba(248,81,73,.22);--sel:rgba(79,140,255,.38)}
+:root[data-theme=light]{--bg:#f5f6f8;--panel:#fff;--panel2:#eef0f4;--line:#d6dae1;--text:#1f2430;--muted:#6a7282;
+ --c-key:#005cc5;--c-str:#22863a;--c-num:#b45309;--c-bool:#6f42c1;--c-null:#6a7282;--c-punc:#6a7282;--c-kw:#6f42c1;--c-cmt:#8a919e;--c-tag:#005cc5;--c-attr:#b45309;
+ --c-var:#b3420f;--c-varbg:rgba(255,108,55,.18);--c-miss:#c4262e;--c-missbg:rgba(248,81,73,.16);--sel:rgba(79,140,255,.30)}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--text);font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column}
+body{background:var(--bg);color:var(--text);font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden}
 button,select,input,textarea{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:5px 9px;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--blue)}
 button{cursor:pointer}button:hover{border-color:var(--muted)}
@@ -18,120 +22,205 @@ button.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-w
 button.ghost{background:transparent}
 button.x{background:transparent;border:none;color:var(--muted);padding:2px 6px}
 button.x:hover{color:var(--err)}
-header{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+button.ico{padding:5px 8px}
+code{font-family:var(--mono);background:var(--panel2);padding:0 4px;border-radius:3px}
+header{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
 .logo{font-weight:700;font-size:15px;color:var(--accent);margin-right:8px}
 .sp{flex:1}
+kbd{font:11px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--panel2);color:var(--muted)}
 #app{flex:1;display:flex;min-height:0}
-aside{width:290px;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+aside{width:290px;min-width:180px;max-width:60vw;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+#sbSplit{width:4px;cursor:col-resize;margin-left:-2px;z-index:2}
+#sbSplit:hover{background:var(--accent)}
 .stabs{display:flex;border-bottom:1px solid var(--line)}
 .stabs button{flex:1;border:none;border-radius:0;background:transparent;padding:8px;color:var(--muted)}
 .stabs button.on{color:var(--text);box-shadow:inset 0 -2px var(--accent)}
-#sbar{padding:8px;display:flex;gap:6px}
+#sbar{padding:8px 8px 4px;display:flex;gap:6px;flex-wrap:wrap}
+#sfilter{margin:4px 8px 6px;width:calc(100% - 16px)}
 #sideList{flex:1;overflow:auto;padding:0 6px 10px}
-.col{margin-bottom:2px}
 .colh,.itm{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer}
 .colh:hover,.itm:hover{background:var(--panel2)}
-.colh .nm,.itm .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.acts{display:none;gap:0}.colh:hover .acts,.itm:hover .acts{display:flex}
-.itm{margin-left:14px}
-.itm.on{background:var(--panel2)}
-.m{font:700 10px var(--mono);min-width:44px;text-align:left}
+.colh .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.itm .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.colh.root .nm{font-weight:600}
+.acts{display:none;gap:0;flex:none}.colh:hover .acts,.itm:hover .acts{display:flex}
+.itm.on{background:var(--panel2);box-shadow:inset 2px 0 var(--accent)}
+.m{font:700 10px var(--mono);min-width:44px;text-align:left;flex:none}
 .m.GET{color:#3fb950}.m.POST{color:#d29922}.m.PUT{color:#4f8cff}.m.PATCH{color:#a371f7}.m.DELETE{color:#f85149}.m.HEAD,.m.OPTIONS{color:#9aa1b0}
 .muted{color:var(--muted)}
 main{flex:1;display:flex;flex-direction:column;min-width:0}
-#tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
-.tab{display:flex;align-items:center;gap:6px;padding:7px 10px;border-right:1px solid var(--line);cursor:pointer;white-space:nowrap;max-width:220px;color:var(--muted)}
+#tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto;flex:none}
+.tab{display:flex;align-items:center;gap:6px;padding:7px 10px;border-right:1px solid var(--line);cursor:pointer;white-space:nowrap;max-width:230px;color:var(--muted)}
 .tab.on{background:var(--bg);color:var(--text);box-shadow:inset 0 2px var(--accent)}
 .tab .nm{overflow:hidden;text-overflow:ellipsis}
 .tab.dirty .nm::after{content:" •";color:var(--accent)}
-#reqSec{display:flex;flex-direction:column;min-height:120px;height:46%}
-.urlbar{display:flex;gap:6px;padding:10px}
-.urlbar #method{width:105px;font-weight:700}
-.urlbar #url{flex:1;font-family:var(--mono)}
-.sub{display:flex;gap:2px;padding:0 10px;border-bottom:1px solid var(--line)}
-.sub button{border:none;background:transparent;border-radius:0;color:var(--muted);padding:6px 10px}
+#work{flex:1;display:flex;flex-direction:column;min-height:0}
+#work.h{flex-direction:row}
+#reqSec{display:flex;flex-direction:column;min-height:120px;height:48%;min-width:0}
+#work.h #reqSec{height:auto;width:50%;min-width:320px}
+#split{flex:none;height:5px;background:var(--line);cursor:row-resize}
+#work.h #split{width:5px;height:auto;cursor:col-resize}
+#split:hover{background:var(--accent)}
+#respSec{flex:1;display:flex;flex-direction:column;min-height:120px;min-width:0}
+.reqhead{display:flex;align-items:center;gap:6px;padding:8px 10px 0}
+.reqhead #crumb{white-space:nowrap}
+#rname{flex:1;min-width:80px;background:transparent;border-color:transparent;font-weight:600;font-size:14px;padding:3px 6px}
+#rname:hover{border-color:var(--line)}
+#rname:focus{background:var(--panel2)}
+#dirtyDot{font-size:11px;color:var(--accent);white-space:nowrap}
+.urlbar{display:flex;gap:6px;padding:8px 10px 10px;align-items:flex-start}
+.urlbar #method{width:105px;font-weight:700;height:32px}
+.urlbar .hli{flex:1}
+.urlbar button{height:32px}
+.sub{display:flex;gap:2px;padding:0 10px;border-bottom:1px solid var(--line);overflow-x:auto;flex:none}
+.sub button{border:none;background:transparent;border-radius:0;color:var(--muted);padding:6px 10px;white-space:nowrap}
 .sub button.on{color:var(--text);box-shadow:inset 0 -2px var(--accent)}
 .sub .cnt{color:var(--ok);font-size:11px}
 #reqPane,#respPane{flex:1;overflow:auto;padding:10px;min-height:0}
-#split{height:5px;background:var(--line);cursor:row-resize}
-#split:hover{background:var(--accent)}
-#respSec{flex:1;display:flex;flex-direction:column;min-height:120px}
-#rstat{display:flex;gap:14px;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);min-height:34px}
+#reqPane.fill{display:flex;flex-direction:column;overflow:hidden}
+#rstat{display:flex;gap:14px;align-items:center;padding:6px 10px;border-bottom:1px solid var(--line);min-height:34px;flex:none;flex-wrap:wrap}
 .pill{padding:2px 9px;border-radius:10px;font-weight:700;font-size:12px}
 .pill.s2{background:#3fb95030;color:var(--ok)}.pill.s3{background:#4f8cff30;color:var(--blue)}.pill.s4{background:#d2992230;color:var(--warn)}.pill.s5,.pill.err{background:#f8514930;color:var(--err)}
 .kv{display:flex;flex-direction:column;gap:4px}
 .kvr{display:flex;gap:5px;align-items:center}
-.kvr input.k{width:32%}.kvr input.v,.kvr input.f{flex:1}.kvr input[type=checkbox]{width:auto}
+.kvr .kh{min-width:0}.kvr .kh.k{width:32%;flex:none}.kvr .kh.v{flex:1}
+.kvr input.f{flex:1}.kvr input[type=checkbox]{width:auto}
 .kvr select{width:70px}
 .row{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
-.row label{min-width:80px;color:var(--muted)}
-textarea.code{width:100%;height:100%;min-height:150px;font-family:var(--mono);font-size:12.5px;resize:none;tab-size:2;white-space:pre}
+.row>label{min-width:80px;color:var(--muted)}
+.tbar{display:flex;gap:6px;margin-bottom:8px;align-items:center;flex-wrap:wrap}
+.seg button{border-radius:0}.seg button:first-child{border-radius:5px 0 0 5px}.seg button:last-child{border-radius:0 5px 5px 0}
+.seg button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+/* ---- highlighted single-line input ---- */
+.hli{position:relative;border:1px solid var(--line);border-radius:5px;background:var(--panel2);min-width:0}
+.hli:focus-within{border-color:var(--blue)}
+.hli .hbg,.hli input{font:inherit;line-height:20px;height:30px;padding:4px 9px;border:0;margin:0;white-space:pre;letter-spacing:normal;width:100%;border-radius:5px}
+.hli .hbg{position:absolute;inset:0;overflow:hidden;pointer-events:none;color:var(--text)}
+.hli input{position:relative;display:block;background:transparent;color:transparent;caret-color:var(--text)}
+.hli input::selection{background:var(--sel);color:transparent}
+.hli input::placeholder{color:var(--muted);opacity:.7}
+.hli.mono .hbg,.hli.mono input{font-family:var(--mono);font-size:12.5px}
+.hli.sm .hbg,.hli.sm input{height:28px;padding-top:3px}
+.hli.plain .hbg{display:none}
+.hli.plain input{color:var(--text)}
+/* ---- code editor with highlighting ---- */
+.ed{flex:1;display:flex;min-height:140px;border:1px solid var(--line);border-radius:5px 5px 0 0;background:var(--panel2);overflow:hidden}
+.gut{margin:0;flex:none;min-width:40px;padding:8px 8px 20px 10px;text-align:right;color:var(--muted);opacity:.8;font:12.5px/20px var(--mono);overflow:hidden;user-select:none;border-right:1px solid var(--line)}
+.edw{position:relative;flex:1;min-width:0}
+.edw .bg,.edw textarea{position:absolute;inset:0;margin:0;padding:8px 10px 20px;font:12.5px/20px var(--mono);white-space:pre;tab-size:2;border:0;border-radius:0;letter-spacing:normal;word-spacing:normal;width:100%;height:100%}
+.edw .bg{overflow:hidden;pointer-events:none;color:var(--text)}
+.edw textarea{background:transparent;color:transparent;caret-color:var(--text);resize:none;overflow:auto}
+.edw textarea::selection{background:var(--sel);color:transparent}
+.edw textarea::placeholder{color:var(--muted);opacity:.7}
+.edst{flex:none;display:flex;gap:12px;padding:3px 10px;border:1px solid var(--line);border-top:0;border-radius:0 0 5px 5px;font-size:11.5px;background:var(--panel);color:var(--muted)}
+.edst .good{color:var(--ok)}.edst .bad{color:var(--err)}
+.jk{color:var(--c-key)}.js{color:var(--c-str)}.jn{color:var(--c-num)}.jb{color:var(--c-bool)}.jz{color:var(--c-null)}.jp{color:var(--c-punc)}
+.kw{color:var(--c-kw)}.cm{color:var(--c-cmt);font-style:italic}.tg{color:var(--c-tag)}.at{color:var(--c-attr)}
+.vr{border-radius:3px}
+.vr.ok{color:var(--c-var);background:var(--c-varbg)}
+.vr.miss{color:var(--c-miss);background:var(--c-missbg)}
+/* response code view */
+.cb{display:flex;align-items:flex-start;font:12.5px/20px var(--mono)}
+.cb .gut{padding:0 8px 0 4px;border:0;min-width:32px;position:sticky;left:0;background:var(--bg)}
+.cb .code{margin:0;padding:0 8px;white-space:pre;flex:1;font:inherit}
+.cb.wrap .code{white-space:pre-wrap;word-break:break-all}
 pre.out{margin:0;font:12.5px/1.5 var(--mono);white-space:pre-wrap;word-break:break-all}
-pre.out.nowrap{white-space:pre;word-break:normal}
-.jk{color:#79b8ff}.js{color:#9ecb7b}.jn{color:#f0a05a}.jb{color:#c792ea}.jz{color:#999}
-@media(prefers-color-scheme:light){.jk{color:#005cc5}.js{color:#22863a}.jn{color:#b45309}.jb{color:#6f42c1}}
 table.t{border-collapse:collapse;width:100%}
 table.t td,table.t th{border-bottom:1px solid var(--line);padding:4px 8px;text-align:left;vertical-align:top;word-break:break-all}
 table.t th{color:var(--muted);font-weight:600}
 .empty{color:var(--muted);text-align:center;margin-top:40px}
 .errbox{color:var(--err);white-space:pre-wrap;font-family:var(--mono)}
-.tbar{display:flex;gap:6px;margin-bottom:8px;align-items:center}
-.seg button{border-radius:0}.seg button:first-child{border-radius:5px 0 0 5px}.seg button:last-child{border-radius:0 5px 5px 0}
-.seg button.on{background:var(--blue);border-color:var(--blue);color:#fff}
 .pass{color:var(--ok)}.fail{color:var(--err)}
-.ov{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:10}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.chip{font-size:11.5px;padding:2px 8px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;color:var(--muted)}
+.chip:hover{color:var(--text);border-color:var(--muted)}
+/* overlays */
+.ov{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:50}
+.ov.top{align-items:flex-start;padding-top:12vh}
 .md{background:var(--panel);border:1px solid var(--line);border-radius:8px;width:520px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column}
 .md.wide{width:900px}
 .mh{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
 .mb{padding:14px;overflow:auto}
-.mf{display:flex;justify-content:flex-end;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
 .mb textarea{width:100%;font-family:var(--mono);font-size:12px}
-#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:6px;display:none;z-index:20}
+.mf{display:flex;justify-content:flex-end;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:6px;display:none;z-index:90}
 .envl{display:flex;gap:14px;min-height:300px}.envl .lft{width:200px}.envl .rgt{flex:1}
 .envl .itm{margin-left:0}
 iframe.prev{width:100%;height:100%;min-height:300px;border:1px solid var(--line);background:#fff;border-radius:5px}
 img.prev{max-width:100%}
+/* palette */
+.pal{width:560px;max-width:95vw;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 20px 50px #0008}
+.pal input{width:100%;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:12px 14px;font-size:15px;background:transparent}
+.pal .list{max-height:50vh;overflow:auto;padding:4px}
+.pal .it{display:flex;gap:8px;align-items:center;padding:7px 10px;border-radius:6px;cursor:pointer}
+.pal .it.on{background:var(--panel2);box-shadow:inset 2px 0 var(--accent)}
+.pal .it .hint{margin-left:auto;color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+.pal .grp{padding:6px 10px 2px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+/* popovers */
+#vtip,.acbox,.pop{position:fixed;z-index:80;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 8px 24px #0006;font-size:12px}
+#vtip{padding:6px 9px;max-width:380px;pointer-events:none;display:none;word-break:break-all}
+.acbox{min-width:220px;max-width:420px;max-height:220px;overflow:auto;padding:3px}
+.acbox .ai{display:flex;gap:10px;padding:3px 8px;border-radius:4px;cursor:pointer;align-items:center}
+.acbox .ai.on{background:var(--blue);color:#fff}
+.acbox .ai .av{margin-left:auto;opacity:.7;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);font-size:11px}
+.pop{padding:8px;width:380px;max-height:60vh;overflow:auto}
+.tagp{font-size:10px;padding:0 6px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">⚡ ApiLab</div>
   <span class="sp"></span>
-  <span class="muted" title="Local ApiLab Java proxy that sends the requests">Proxy</span><input id="proxyUrl" style="width:170px" spellcheck="false"><span class="muted">Environment</span>
+  <span class="muted" title="Local ApiLab Java proxy that sends the requests">Proxy</span><input id="proxyUrl" style="width:170px" spellcheck="false">
+  <span class="muted">Environment</span>
   <select id="envSel"></select>
+  <button id="envEye" class="ico" title="Quick look at current variables">👁</button>
   <button id="envBtn">Manage</button>
+  <button id="palBtn" title="Command palette">Search <kbd>Ctrl K</kbd></button>
+  <button id="layBtn" class="ico" title="Switch layout (stacked / side by side)">⇆</button>
+  <button id="themeBtn" class="ico" title="Theme">🌓</button>
   <button id="impBtn">Import</button>
   <button id="expBtn">Export all</button>
   <button id="helpBtn">Help</button>
 </header>
 <div id="app">
-  <aside>
+  <aside id="side">
     <div class="stabs"><button data-s="collections" class="on">Collections</button><button data-s="history">History</button></div>
     <div id="sbar"></div>
+    <input id="sfilter" placeholder="Filter requests…" spellcheck="false">
     <div id="sideList"></div>
   </aside>
+  <div id="sbSplit"></div>
   <main>
     <div id="tabs"></div>
-    <section id="reqSec">
-      <div class="urlbar">
-        <select id="method"></select>
-        <input id="url" placeholder="Enter URL, e.g. {{baseUrl}}/api/users  (or paste a cURL command)" spellcheck="false">
-        <button id="send" class="pri">Send</button>
-        <button id="saveBtn">Save</button>
-        <button id="codeBtn">&lt;/&gt;</button>
-      </div>
-      <div class="sub" id="subs"></div>
-      <div id="reqPane"></div>
-    </section>
-    <div id="split"></div>
-    <section id="respSec">
-      <div id="rstat"></div>
-      <div class="sub" id="rsubs"></div>
-      <div id="respPane"></div>
-    </section>
+    <div id="work">
+      <section id="reqSec">
+        <div class="reqhead">
+          <span id="crumb" class="muted"></span>
+          <input id="rname" placeholder="Untitled Request" spellcheck="false" title="Request name">
+          <span id="dirtyDot"></span>
+          <button id="saveBtn">Save</button>
+          <button id="codeBtn">&lt;/&gt; Code</button>
+        </div>
+        <div class="urlbar">
+          <select id="method"></select>
+          <div id="urlHost"></div>
+          <button id="send" class="pri">Send</button>
+        </div>
+        <div class="sub" id="subs"></div>
+        <div id="reqPane"></div>
+      </section>
+      <div id="split"></div>
+      <section id="respSec">
+        <div id="rstat"></div>
+        <div class="sub" id="rsubs"></div>
+        <div id="respPane"></div>
+      </section>
+    </div>
   </main>
 </div>
 <div id="toast"></div>
+<div id="vtip"></div>
 <datalist id="hn"><option>Accept<option>Accept-Language<option>Authorization<option>Cache-Control<option>Content-Type<option>Cookie<option>If-None-Match<option>Origin<option>Referer<option>User-Agent<option>X-Api-Key<option>X-Correlation-Id<option>X-Requested-With</datalist>
 
 <script>
@@ -149,36 +238,223 @@ const STATUS={200:'OK',201:'Created',202:'Accepted',204:'No Content',301:'Moved 
 const b64=s=>btoa(unescape(encodeURIComponent(s)));
 const unb64=s=>decodeURIComponent(escape(atob(s)));
 const newRow=()=>({id:uid(),k:'',v:'',on:true,t:'text'});
-const newReq=(o={})=>({id:uid(),name:'New Request',method:'GET',url:'',params:[newRow()],headers:[newRow()],
+const newReq=(o={})=>({id:uid(),name:'',method:'GET',url:'',desc:'',params:[newRow()],headers:[newRow()],
   auth:{type:'none',token:'',user:'',pass:'',key:'',value:'',in:'header'},
   body:{type:'none',raw:'',form:[newRow()],urlenc:[newRow()]},pre:'',tests:'',
   settings:{follow:true,insecure:false,timeout:30000},collectionId:null,...o});
+const newNode=(name)=>({id:uid(),name,open:true,requests:[],folders:[]});
 const clone=o=>JSON.parse(JSON.stringify(o));
+const isUntitled=r=>!r.name||r.name==='New Request'||r.name==='Untitled Request';
+const reqTitle=r=>!isUntitled(r)?r.name:(r.url?r.url.replace(/^https?:\/\//,'').slice(0,42):'Untitled Request');
 
-let S={collections:[],history:[],envs:[],activeEnv:'',globals:[newRow()],tabs:[],active:null,sideTab:'collections'};
+let S={collections:[],history:[],envs:[],activeEnv:'',globals:[newRow()],tabs:[],active:null,sideTab:'collections',layout:'v',theme:'auto',sbw:290};
 const RESP={}, FILES={};
-let sub='params', rsub='body', rview='pretty', ctrl=null;
+let sub='params', rsub='body', rview='pretty', ctrl=null, filterQ='';
+const bulk={params:false,headers:false};
 
-function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d)S={...S,...d}}catch(e){}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function normalize(n){n.requests=n.requests||[];n.folders=n.folders||[];if(n.open===undefined)n.open=true;n.requests.forEach(r=>{if(r.desc===undefined)r.desc=''});n.folders.forEach(normalize)}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d)S={...S,...d}}catch(e){}S.collections.forEach(normalize);S.tabs.forEach(r=>{if(r.desc===undefined)r.desc=''})}
+let scopeCache=null;
+function save(){scopeCache=null;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 let saveT;
-function touch(){const r=cur();if(r)r.dirty=true;clearTimeout(saveT);saveT=setTimeout(save,300);renderTabs()}
+function touch(){const r=cur();if(r)r.dirty=true;clearTimeout(saveT);saveT=setTimeout(save,300);renderTabs();renderHead()}
 const cur=()=>S.tabs.find(t=>t.id===S.active);
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2200)}
 function copy(txt){(navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).catch(()=>{const a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}).finally?.(()=>toast('Copied'))}
 function download(name,data,type='application/octet-stream'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 
-function modal(title,html,{wide=false,okText='OK',onOk,hideOk=false}={}){
+function modal(title,html,{wide=false,okText='OK',onOk,hideOk=false,onClose}={}){
   const d=document.createElement('div');d.className='ov';
   d.innerHTML=`<div class="md ${wide?'wide':''}"><div class="mh"><b>${title}</b><button class="x">✕</button></div><div class="mb">${html}</div>${hideOk?'':`<div class="mf"><button class="ghost" data-c>Cancel</button><button class="pri" data-ok>${okText}</button></div>`}</div>`;
   document.body.appendChild(d);
-  const close=()=>d.remove();
+  const close=()=>{d.remove();onClose&&onClose()};d._close=close;
   $('.mh .x',d).onclick=close;d.onmousedown=e=>{if(e.target===d)close()};
   if(!hideOk){$('[data-c]',d).onclick=close;$('[data-ok]',d).onclick=async()=>{if(onOk&&(await onOk(d))===false)return;close()}}
   return {el:d,close};
 }
+function askText(title,def='',okText='OK'){return new Promise(res=>{let done=false;
+  const m=modal(esc(title),`<input id="atx" style="width:100%" value="${esc(def)}" spellcheck="false">`,{okText,onOk:d=>{done=true;res($('#atx',d).value.trim())},onClose:()=>{if(!done)res(null)}});
+  const i=$('#atx',m.el);i.focus();i.select();i.onkeydown=e=>{if(e.key==='Enter')$('[data-ok]',m.el).click()}})}
+function confirmBox(msg,okText='Delete'){return new Promise(res=>{let done=false;
+  modal('Confirm',`<div>${esc(msg)}</div>`,{okText,onOk:()=>{done=true;res(true)},onClose:()=>{if(!done)res(false)}})})}
 
-/* ---------- key/value editor ---------- */
+/* ================= theme / layout ================= */
+let parentTheme=null;
+function applyTheme(){const sys=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+  const t=parentTheme||(S.theme==='auto'?sys:S.theme);document.documentElement.dataset.theme=t;
+  $('#themeBtn').title='Theme: '+(parentTheme?'follows the toolbox':S.theme)+' (click to change)';$('#themeBtn').style.display=parentTheme?'none':''}
+matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',applyTheme);
+window.addEventListener('message',e=>{if(e.origin!==location.origin)return;const d=e.data;if(d&&d.type==='apilab-theme'&&(d.theme==='dark'||d.theme==='light')){parentTheme=d.theme;applyTheme()}});
+$('#themeBtn').onclick=()=>{S.theme={auto:'light',light:'dark',dark:'auto'}[S.theme]||'auto';save();applyTheme();toast('Theme: '+S.theme)};
+function applyLayout(){$('#work').classList.toggle('h',S.layout==='h');$('#reqSec').style.height='';$('#reqSec').style.width=''}
+$('#layBtn').onclick=()=>{S.layout=S.layout==='h'?'v':'h';save();applyLayout()};
+
+/* ================= variables ================= */
+const DYN=['$guid','$timestamp','$isoTimestamp','$randomInt'];
+const varRe=()=>/\{\{\s*([^{}\s]+)\s*\}\}/g;
+const curEnv=()=>S.envs.find(e=>e.id===S.activeEnv);
+function scopes(){if(scopeCache)return scopeCache;const m=new Map();
+  S.globals.forEach(g=>{if(g.on&&g.k)m.set(g.k,{v:g.v,scope:'global'})});
+  const e=curEnv();if(e)e.vars.forEach(x=>{if(x.on&&x.k)m.set(x.k,{v:x.v,scope:'env'})});
+  return scopeCache=m}
+const lookup=n=>DYN.includes(n)?{v:'(generated when sent)',scope:'dynamic'}:scopes().get(n)||null;
+function vars(){const m={};scopes().forEach((x,k)=>m[k]=x.v);return m}
+function sub_(s,m){return String(s??'').replace(varRe(),(a,k)=>{
+  if(k in m)return m[k];
+  if(k==='$guid')return crypto.randomUUID();
+  if(k==='$timestamp')return Math.floor(Date.now()/1000);
+  if(k==='$isoTimestamp')return new Date().toISOString();
+  if(k==='$randomInt')return Math.floor(Math.random()*1000);
+  return a})}
+function activeEnvVars(){let e=curEnv();
+  if(!e){e={id:uid(),name:'Default',vars:[newRow()]};S.envs.push(e);S.activeEnv=e.id;renderEnvSel()}return e.vars}
+
+/* ================= syntax highlighting ================= */
+const varSpan=(full,name)=>`<span class="vr ${lookup(name)?'ok':'miss'}" data-v="${esc(name)}">${esc(full)}</span>`;
+function hlVars(t){let o='',l=0,m;const re=varRe();while((m=re.exec(t))){o+=esc(t.slice(l,m.index))+varSpan(m[0],m[1]);l=re.lastIndex}return o+esc(t.slice(l))}
+function hlJson(t,vars=true){const V=vars?hlVars:esc;
+  const re=/(\{\{\s*[^{}\s]+\s*\}\})|("(?:\\.|[^"\\\n])*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false)\b|\b(null)\b|([{}\[\],:])/g;
+  let o='',l=0,m;
+  while((m=re.exec(t))){o+=esc(t.slice(l,m.index));l=re.lastIndex;
+    if(m[1])o+=vars?hlVars(m[1]):esc(m[1]);
+    else if(m[2])o+=`<span class="${m[3]?'jk':'js'}">${V(m[2])}</span>`+(m[3]?`<span class="jp">${esc(m[3])}</span>`:'');
+    else if(m[4])o+=`<span class="jn">${m[4]}</span>`;
+    else if(m[5])o+=`<span class="jb">${m[5]}</span>`;
+    else if(m[6])o+=`<span class="jz">${m[6]}</span>`;
+    else o+=`<span class="jp">${m[7]}</span>`}
+  return o+esc(t.slice(l))}
+function hlJs(t,vars=true){const V=vars?hlVars:esc;
+  const re=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|\b(const|let|var|function|return|if|else|for|while|of|in|new|try|catch|finally|throw|async|await|true|false|null|undefined|typeof|class|switch|case|break|continue|this)\b|\b(pm|console|expect)\b|(\b\d+(?:\.\d+)?\b)/g;
+  let o='',l=0,m;
+  while((m=re.exec(t))){o+=esc(t.slice(l,m.index));l=re.lastIndex;
+    if(m[1])o+=`<span class="cm">${esc(m[1])}</span>`;
+    else if(m[2])o+=`<span class="js">${V(m[2])}</span>`;
+    else if(m[3])o+=`<span class="kw">${m[3]}</span>`;
+    else if(m[4])o+=`<span class="jk">${m[4]}</span>`;
+    else o+=`<span class="jn">${m[5]}</span>`}
+  return o+esc(t.slice(l))}
+function hlXml(t,vars=true){const V=vars?hlVars:esc;
+  const re=/(<!--[\s\S]*?-->)|(<\/?[\w:.-]+)|(\s)([\w:.-]+)(=)("[^"]*"|'[^']*')|(\/?>)/g;
+  let o='',l=0,m;
+  while((m=re.exec(t))){o+=V(t.slice(l,m.index));l=re.lastIndex;
+    if(m[1])o+=`<span class="cm">${esc(m[1])}</span>`;
+    else if(m[2])o+=`<span class="tg">${esc(m[2])}</span>`;
+    else if(m[4])o+=`${m[3]}<span class="at">${esc(m[4])}</span><span class="jp">=</span><span class="js">${V(m[6])}</span>`;
+    else o+=`<span class="tg">${esc(m[7])}</span>`}
+  return o+V(t.slice(l))}
+const HL={json:hlJson,js:hlJs,xml:hlXml,text:(t,v=true)=>v?hlVars(t):esc(t)};
+
+/* ================= autocomplete + variable tooltip ================= */
+let ac=null;
+function acHide(){if(ac){ac.el.remove();ac=null}}
+function acShow(x,y,names,inp,start){
+  acHide();const el=document.createElement('div');el.className='acbox';
+  const draw=()=>{el.innerHTML=names.map((n,i)=>{const v=(lookup(n)||{}).v;return `<div class="ai ${i===ac.idx?'on':''}" data-i="${i}"><span>${esc(n)}</span><span class="av">${v===undefined?'':esc(String(v).slice(0,30))}</span></div>`}).join('')};
+  ac={el,names,idx:0,inp,start,draw};document.body.appendChild(el);draw();
+  el.style.left=Math.max(4,Math.min(x,innerWidth-430))+'px';el.style.top=Math.min(y,innerHeight-230)+'px';
+  el.onmousedown=e=>{e.preventDefault();const i=e.target.closest('[data-i]');if(i)acApply(names[+i.dataset.i])};
+}
+function acApply(name){if(!ac)return;const {inp,start}=ac;acHide();
+  const v=inp.value,pos=inp.selectionStart,after=v.slice(pos);const mm=/^[\w.$-]*\s*\}\}/.exec(after);
+  const end=pos+(mm?mm[0].length:0);inp.focus();inp.setSelectionRange(start,end);
+  if(!document.execCommand('insertText',false,`{{${name}}}`)){inp.setRangeText(`{{${name}}}`,start,end,'end');inp.dispatchEvent(new Event('input',{bubbles:true}))}}
+function acCheck(inp,x,y){
+  const pos=inp.selectionStart,m=/\{\{\s*([\w.$-]*)$/.exec(inp.value.slice(0,pos));
+  if(!m){acHide();return}
+  const q=m[1].toLowerCase();const names=[...new Set([...scopes().keys(),...DYN])].filter(n=>n.toLowerCase().includes(q)&&n.toLowerCase()!==q);
+  if(!names.length){acHide();return}
+  acShow(x,y,names,inp,pos-m[0].length)}
+function acKey(e,inp){if(!ac||ac.inp!==inp)return false;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const n=ac.names.length;ac.idx=(ac.idx+(e.key==='ArrowDown'?1:n-1))%n;ac.draw();ac.el.querySelector('.on')?.scrollIntoView({block:'nearest'});return true}
+  if(e.key==='Enter'||e.key==='Tab'){e.preventDefault();acApply(ac.names[ac.idx]);return true}
+  if(e.key==='Escape'){e.preventDefault();acHide();return true}
+  return false}
+let _cw;function charW(font){if(!_cw){_cw=document.createElement('canvas').getContext('2d')}_cw.font=font;return _cw.measureText('M').width}
+
+const tip=$('#vtip');
+document.addEventListener('mousemove',e=>{
+  const host=e.target.closest&&e.target.closest('.hli,.edw');
+  if(!host){tip.style.display='none';return}
+  let hit=null;
+  for(const s of host.querySelectorAll('.vr')){for(const r of s.getClientRects()){if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){hit=s;break}}if(hit)break}
+  if(!hit){tip.style.display='none';return}
+  const n=hit.dataset.v,info=lookup(n);
+  tip.innerHTML=info?`<b>${esc(n)}</b> <span class="tagp">${info.scope}</span><div style="margin-top:3px" class="muted">${esc(String(info.v).slice(0,200))||'&lt;empty&gt;'}</div>`
+    :`<b style="color:var(--c-miss)">${esc(n)}</b> <span class="tagp">not defined</span><div class="muted" style="margin-top:3px">${curEnv()?'Not in “'+esc(curEnv().name)+'” or Globals.':'No environment selected.'} Add it under Manage.</div>`;
+  tip.style.display='block';tip.style.left=Math.max(4,Math.min(e.clientX+12,innerWidth-390))+'px';tip.style.top=(e.clientY+16)+'px';
+});
+document.addEventListener('mouseleave',()=>tip.style.display='none');
+
+/* ================= highlighted single-line input ================= */
+function hlInput(host,{value='',onInput,placeholder='',type='text',list,mono=false,onEnter,sm=false}={}){
+  host.classList.add('hli');if(mono)host.classList.add('mono');if(sm)host.classList.add('sm');if(type==='password')host.classList.add('plain');
+  host.innerHTML='<div class="hbg" aria-hidden="true"></div><input autocomplete="off" spellcheck="false">';
+  const bg=host.firstChild,inp=host.lastChild;inp.type=type;inp.placeholder=placeholder;if(list)inp.setAttribute('list',list);
+  inp.value=value;
+  const sync=()=>{bg.scrollLeft=inp.scrollLeft};
+  const paint=()=>{bg.innerHTML=type==='password'?'':hlVars(inp.value);sync()};
+  inp.addEventListener('input',()=>{paint();onInput&&onInput(inp.value);const r=host.getBoundingClientRect();acCheck(inp,r.left,r.bottom+2)});
+  ['keyup','click','focus','scroll','select'].forEach(ev=>inp.addEventListener(ev,()=>requestAnimationFrame(sync)));
+  inp.addEventListener('keydown',e=>{if(acKey(e,inp))return;if(e.key==='Enter'&&onEnter)onEnter(e)});
+  inp.addEventListener('blur',()=>setTimeout(()=>{if(ac&&ac.inp===inp)acHide()},120));
+  paint();
+  return {input:inp,paint,set(v){inp.value=v;paint()}};
+}
+
+/* ================= code editor (textarea over highlighted layer) ================= */
+function ins(ta,text,back=0){ta.focus();if(!document.execCommand('insertText',false,text)){ta.setRangeText(text,ta.selectionStart,ta.selectionEnd,'end');ta.dispatchEvent(new Event('input',{bubbles:true}))}if(back){const p=ta.selectionStart-back;ta.setSelectionRange(p,p)}}
+function jsonCheck(v){if(!v.trim())return {ok:true,empty:true};
+  const t=v.replace(varRe(),m=>'1'.repeat(m.length));
+  try{JSON.parse(t);return {ok:true}}catch(e){let msg=e.message.replace(/^JSON\.parse: /,'');let ln=0;
+    const lm=/line (\d+) column (\d+)/.exec(msg);if(lm){ln=+lm[1]}else{const pm=/position (\d+)/.exec(msg);if(pm)ln=t.slice(0,+pm[1]).split('\n').length}
+    return {ok:false,msg:msg.replace(/ in JSON at position \d+.*$/,'').replace(/\(line \d+ column \d+\)/,'').trim(),ln}}}
+function xmlCheck(v){if(!v.trim())return {ok:true,empty:true};const d=new DOMParser().parseFromString(v,'application/xml');const er=d.querySelector('parsererror');return er?{ok:false,msg:er.textContent.split('\n')[0].slice(0,120)}:{ok:true}}
+function jsCheck(v){if(!v.trim())return {ok:true,empty:true};try{new Function('pm','console','expect','return (async()=>{'+v+'\n})()');return {ok:true}}catch(e){return {ok:false,msg:e.message}}}
+const CHECK={json:jsonCheck,xml:xmlCheck,js:jsCheck};
+function editor(host,{value='',mode='text',onInput,placeholder=''}){
+  host.innerHTML='<div class="ed"><pre class="gut" aria-hidden="true"></pre><div class="edw"><pre class="bg" aria-hidden="true"></pre><textarea spellcheck="false" wrap="off" autocomplete="off" autocapitalize="off"></textarea></div></div><div class="edst"></div>';
+  const gut=$('.gut',host),bg=$('.bg',host),ta=$('textarea',host),st=$('.edst',host);
+  ta.value=value;ta.placeholder=placeholder;
+  const fn=HL[mode]||HL.text;
+  const sync=()=>{bg.scrollTop=ta.scrollTop;bg.scrollLeft=ta.scrollLeft;gut.scrollTop=ta.scrollTop};
+  const pos=()=>{const b=ta.value.slice(0,ta.selectionStart).split('\n');return `Ln ${b.length}, Col ${b[b.length-1].length+1}`};
+  const status=()=>{const c=CHECK[mode];let h='';
+    if(c){const r=c(ta.value);h=r.empty?'':r.ok?'<span class="good">✓ '+(mode==='js'?'No syntax errors':'Valid '+mode.toUpperCase())+'</span>':`<span class="bad">✕ ${esc(r.msg)}${r.ln?' (line '+r.ln+')':''}</span>`}
+    st.innerHTML=h+`<span style="margin-left:auto">${pos()} · ${ta.value.length} chars</span>`};
+  const paint=()=>{const v=ta.value;bg.innerHTML=(v.length>300000?esc(v):fn(v))+'\n';
+    const n=v.split('\n').length;let g='';for(let i=1;i<=n;i++)g+=i+'\n';gut.textContent=g;status();sync()};
+  ta.addEventListener('input',()=>{paint();onInput&&onInput(ta.value);
+    const cs=getComputedStyle(ta),r=ta.getBoundingClientRect(),b=ta.value.slice(0,ta.selectionStart).split('\n');
+    acCheck(ta,r.left+parseFloat(cs.paddingLeft)+b[b.length-1].length*charW(cs.font)-ta.scrollLeft,r.top+parseFloat(cs.paddingTop)+b.length*20-ta.scrollTop)});
+  ta.addEventListener('scroll',sync);
+  ['keyup','click'].forEach(ev=>ta.addEventListener(ev,()=>{const el=$('.edst span:last-child',host);if(el)el.textContent=pos()+' · '+ta.value.length+' chars'}));
+  ta.addEventListener('blur',()=>setTimeout(()=>{if(ac&&ac.inp===ta)acHide()},120));
+  ta.addEventListener('keydown',e=>{
+    if(acKey(e,ta))return;
+    if(e.ctrlKey||e.metaKey||e.altKey)return;
+    const s=ta.selectionStart,en=ta.selectionEnd,v=ta.value,prev=v[s-1]||'',next=v[en]||'';
+    if(e.key==='Tab'){e.preventDefault();ins(ta,'  ');return}
+    if(mode!=='json'&&mode!=='js')return;
+    if(e.key==='Enter'){e.preventDefault();const ls=v.lastIndexOf('\n',s-1)+1,ind=/^[ \t]*/.exec(v.slice(ls,s))[0];
+      const close={'{':'}','[':']','(':')'}[prev];
+      if(close&&s===en&&next===close)ins(ta,'\n'+ind+'  \n'+ind,ind.length+1);
+      else if(close&&s===en)ins(ta,'\n'+ind+'  ');
+      else ins(ta,'\n'+ind);return}
+    const pairs=mode==='json'?{'{':'}','[':']','"':'"'}:{'{':'}','[':']','(':')','"':'"',"'":"'",'`':'`'};
+    if(s===en&&Object.values(pairs).includes(e.key)&&next===e.key){e.preventDefault();ta.setSelectionRange(s+1,s+1);return}
+    if(e.key in pairs){
+      if(s!==en){e.preventDefault();ins(ta,e.key+v.slice(s,en)+pairs[e.key]);return}
+      const quote=pairs[e.key]===e.key;
+      if(quote&&(/[\w\\]/.test(prev)||/\w/.test(next)))return;
+      if(!quote&&/\w/.test(next))return;
+      e.preventDefault();ins(ta,e.key+pairs[e.key],1);return}
+    if(e.key==='Backspace'&&s===en&&pairs[prev]&&pairs[prev]===next){e.preventDefault();ta.setSelectionRange(s-1,s+1);document.execCommand('delete')}
+  });
+  paint();
+  return {ta,paint,set(v){ta.value=v;paint()}};
+}
+
+/* ================= key/value editor ================= */
 function kv(el,rows,{form=false,hn=false,onChange=touch}={}){
   el.innerHTML='';
   const tbl=document.createElement('div');tbl.className='kv';el.appendChild(tbl);
@@ -186,14 +462,13 @@ function kv(el,rows,{form=false,hn=false,onChange=touch}={}){
   ensure();
   const dom=row=>{
     const d=document.createElement('div');d.className='kvr';
-    d.innerHTML=`<input type="checkbox" ${row.on?'checked':''}><input class="k" placeholder="Key" ${hn?'list="hn"':''}>${row.t==='file'?'<input type="file" class="f">':'<input class="v" placeholder="Value">'}${form?`<select class="t"><option>text</option><option ${row.t==='file'?'selected':''}>file</option></select>`:''}<button class="x" title="Remove">✕</button>`;
-    const cb=$('input[type=checkbox]',d),k=$('.k',d),v=$('.v',d),f=$('.f',d),t=$('.t',d);
-    k.value=row.k;if(v)v.value=row.v;
+    d.innerHTML=`<input type="checkbox" ${row.on?'checked':''}><div class="kh k"></div>${row.t==='file'?'<input type="file" class="f">':'<div class="kh v"></div>'}${form?`<select class="t"><option>text</option><option ${row.t==='file'?'selected':''}>file</option></select>`:''}<button class="x" title="Remove">✕</button>`;
+    const cb=$('input[type=checkbox]',d),f=$('.f',d),t=$('.t',d);
+    const grow=()=>{if(rows[rows.length-1]===row){ensure();tbl.appendChild(dom(rows[rows.length-1]))}};
+    hlInput($('.kh.k',d),{value:row.k,placeholder:'Key',list:hn?'hn':undefined,sm:true,onInput:v=>{row.k=v;grow();onChange()}});
+    if(!f)hlInput($('.kh.v',d),{value:row.v,placeholder:'Value',sm:true,onInput:v=>{row.v=v;grow();onChange()}});
     if(f&&row.v&&!FILES[row.id])f.title='Previously: '+row.v+' (re-select file)';
     cb.onchange=()=>{row.on=cb.checked;onChange()};
-    const grow=()=>{if(rows[rows.length-1]===row){ensure();tbl.appendChild(dom(rows[rows.length-1]))}};
-    k.oninput=()=>{row.k=k.value;grow();onChange()};
-    if(v)v.oninput=()=>{row.v=v.value;grow();onChange()};
     if(f)f.onchange=()=>{FILES[row.id]=f.files[0];row.v=f.files[0]?.name||'';grow();onChange()};
     if(t)t.onchange=()=>{row.t=t.value;kv(el,rows,{form,hn,onChange});onChange()};
     $('.x',d).onclick=()=>{const i=rows.indexOf(row);rows.splice(i,1);kv(el,rows,{form,hn,onChange});onChange()};
@@ -201,8 +476,18 @@ function kv(el,rows,{form=false,hn=false,onChange=touch}={}){
   };
   rows.forEach(r=>tbl.appendChild(dom(r)));
 }
+const rowsToText=rows=>rows.filter(r=>r.k||r.v).map(r=>(r.on?'':'// ')+r.k+': '+r.v).join('\n');
+function textToRows(t){const out=[];t.split('\n').forEach(line=>{let l=line.trim();if(!l)return;let on=true;if(l.startsWith('//')){on=false;l=l.slice(2).trim()}const i=l.indexOf(':');out.push({...newRow(),on,k:(i<0?l:l.slice(0,i)).trim(),v:i<0?'':l.slice(i+1).trim()})});return out}
+function kvPane(p,rows,key,{hn=false,onChange}){
+  p.innerHTML=`<div class="tbar"><button id="bk">${bulk[key]?'Key-Value edit':'Bulk edit'}</button><span class="muted">${bulk[key]?'One per line: <code>key: value</code>. Prefix a line with <code>//</code> to disable it.':''}</span></div><div id="kvx"></div>`;
+  $('#bk',p).onclick=()=>{bulk[key]=!bulk[key];kvPane(p,rows,key,{hn,onChange})};
+  const box=$('#kvx',p);
+  if(bulk[key]){p.classList.add('fill');box.style.cssText='flex:1;min-height:0;display:flex;flex-direction:column';
+    const ed=editor(box,{value:rowsToText(rows),mode:'text',placeholder:'Accept: application/json\nAuthorization: Bearer {{token}}',onInput:v=>{rows.splice(0,rows.length,...textToRows(v),newRow());onChange()}});ed.ta.focus()}
+  else{p.classList.remove('fill');kv(box,rows,{hn,onChange})}
+}
 
-/* ---------- URL <-> params ---------- */
+/* ================= URL <-> params ================= */
 const enc=s=>encodeURIComponent(s).replace(/%7B/g,'{').replace(/%7D/g,'}').replace(/%24/g,'$');
 const dec=s=>{try{return decodeURIComponent(s.replace(/\+/g,' '))}catch(e){return s}};
 function parseQuery(url){const i=url.indexOf('?');if(i<0)return[];const q=url.slice(i+1).split('#')[0];
@@ -211,20 +496,7 @@ function urlToParams(r){const off=r.params.filter(p=>!p.on&&(p.k||p.v));r.params
 function paramsToUrl(r){const i=r.url.indexOf('?');const base=i<0?r.url:r.url.slice(0,i);
   const q=r.params.filter(p=>p.on&&(p.k||p.v)).map(p=>enc(p.k)+(p.v!==''?'='+enc(p.v):'')).join('&');r.url=base+(q?'?'+q:'')}
 
-/* ---------- variables ---------- */
-function vars(){const m={};for(const g of S.globals)if(g.on&&g.k)m[g.k]=g.v;
-  const e=S.envs.find(e=>e.id===S.activeEnv);if(e)for(const x of e.vars)if(x.on&&x.k)m[x.k]=x.v;return m}
-function sub_(s,m){return String(s??'').replace(/\{\{\s*([^}\s]+)\s*\}\}/g,(a,k)=>{
-  if(k in m)return m[k];
-  if(k==='$guid')return crypto.randomUUID();
-  if(k==='$timestamp')return Math.floor(Date.now()/1000);
-  if(k==='$isoTimestamp')return new Date().toISOString();
-  if(k==='$randomInt')return Math.floor(Math.random()*1000);
-  return a})}
-function activeEnvVars(){let e=S.envs.find(e=>e.id===S.activeEnv);
-  if(!e){e={id:uid(),name:'Default',vars:[newRow()]};S.envs.push(e);S.activeEnv=e.id;renderEnvSel()}return e.vars}
-
-/* ---------- build request ---------- */
+/* ================= build + scripting + execute ================= */
 async function build(r,m){
   let url=sub_(r.url,m).trim();
   const hd=[];
@@ -246,8 +518,6 @@ async function build(r,m){
     const rs=new Response(fd);setH('Content-Type',rs.headers.get('Content-Type'));body=new Uint8Array(await rs.arrayBuffer())}
   return {method:r.method,url,headers:hd,body,text,form};
 }
-
-/* ---------- scripting (pm.* API) ---------- */
 function expect(v){
   let neg=false;const o={};
   const fmt=x=>{try{return JSON.stringify(x)}catch(e){return String(x)}};
@@ -278,9 +548,10 @@ function expect(v){
 function makePm(work,res,m,logs,tests,pend){
   const hdrGet=n=>((res?.headers||[]).find(h=>h[0].toLowerCase()===String(n).toLowerCase())||[])[1];
   const mk=(get,set,unset)=>({get,set,unset,has:k=>get(k)!==undefined});
+  const globalsApi=mk(k=>(S.globals.find(x=>x.k===k)||{}).v,(k,v)=>{const x=S.globals.find(x=>x.k===k);if(x)x.v=String(v);else S.globals.splice(Math.max(0,S.globals.length-1),0,{...newRow(),k,v:String(v)});save()},k=>{const i=S.globals.findIndex(x=>x.k===k);if(i>=0)S.globals.splice(i,1);save()});
   const pm={
     environment:mk(k=>vars()[k],(k,v)=>{const a=activeEnvVars();const x=a.find(x=>x.k===k);if(x){x.v=String(v);x.on=true}else a.splice(Math.max(0,a.length-1),0,{...newRow(),k,v:String(v)});save()},k=>{const a=activeEnvVars();const i=a.findIndex(x=>x.k===k);if(i>=0)a.splice(i,1);save()}),
-    globals:mk(k=>(S.globals.find(x=>x.k===k)||{}).v,(k,v)=>{const x=S.globals.find(x=>x.k===k);if(x)x.v=String(v);else S.globals.splice(Math.max(0,S.globals.length-1),0,{...newRow(),k,v:String(v)});save()},k=>{const i=S.globals.findIndex(x=>x.k===k);if(i>=0)S.globals.splice(i,1);save()}),
+    globals:globalsApi,collectionVariables:globalsApi,
     variables:mk(k=>({...vars(),...m})[k],(k,v)=>{m[k]=String(v)},k=>{delete m[k]}),
     request:{get url(){return work.url},set url(v){work.url=v},get method(){return work.method},set method(v){work.method=v},
       headers:{add:h=>work.headers.unshift({...newRow(),k:h.key,v:h.value}),upsert:h=>{const x=work.headers.find(x=>x.k.toLowerCase()===h.key.toLowerCase());if(x){x.v=h.value;x.on=true}else work.headers.unshift({...newRow(),k:h.key,v:h.value})},remove:k=>{work.headers=work.headers.filter(x=>x.k.toLowerCase()!==k.toLowerCase())},get:k=>(work.headers.find(x=>x.k.toLowerCase()===k.toLowerCase())||{}).v},
@@ -308,8 +579,6 @@ async function runScript(code,pm,logs,tests,pend){
   try{await new Function('pm','console','expect','return (async()=>{'+code+'\n})()')(pm,con,expect);await Promise.all(pend)}
   catch(e){logs.push({t:'err',m:'Script error: '+e.message});tests.push({name:'Script error',pass:false,msg:e.message})}
 }
-
-/* ---------- execute ---------- */
 async function execute(r,signal){
   const logs=[],tests=[],pend=[],m={};
   const work=clone(r);
@@ -319,6 +588,11 @@ async function execute(r,signal){
   const map={...vars(),...m};
   const built=await build(work,map);
   const res={built,logs,tests};
+  const missingIn=t=>[...new Set([...String(t||'').matchAll(varRe())].map(x=>x[1]))];
+  const inUrl=missingIn(built.url);
+  if(inUrl.length)return {error:'Undefined variable'+(inUrl.length>1?'s':'')+' in the URL: '+inUrl.map(n=>'{{'+n+'}}').join(', ')+'\n'+(curEnv()?'Define '+(inUrl.length>1?'them':'it')+' in the “'+curEnv().name+'” environment or in Globals (Manage button).':'No environment is selected. Pick one in the header, or define the variable in Globals (Manage button).'),logs,tests};
+  const other=[...new Set([...built.headers.flat().flatMap(missingIn),...missingIn(built.text)])];
+  if(other.length)logs.push({t:'warn',m:'Unresolved variable'+(other.length>1?'s':'')+' sent as literal text: '+other.map(n=>'{{'+n+'}}').join(', ')});
   const t0=performance.now();
   try{
     const resp=await fetch(getProxy()+'/proxy',{method:'POST',signal,headers:{'X-ApiLab':'1','X-ApiLab-Method':built.method,'X-ApiLab-Url':b64(built.url),
@@ -345,10 +619,12 @@ async function sendCurrent(){
   const res=await execute(r,ctrl.signal);
   ctrl=null;$('#send').textContent='Send';RESP[r.id]=res;
   if(!res.error||res.status){S.history.unshift({id:uid(),ts:Date.now(),status:res.status,time:res.time,req:clone({...r,dirty:undefined})});S.history=S.history.slice(0,100)}
-  save();if(cur()&&cur().id===r.id)renderResp();renderSide();
+  save();
+  if(cur()&&cur().id===r.id){renderResp();if(r.pre.trim()||r.tests.trim())renderReq(true)}   // scripts may have changed variables: refresh highlighting
+  renderSide();
 }
 
-/* ---------- code generation ---------- */
+/* ================= code generation ================= */
 const q1=s=>"'"+String(s).replace(/'/g,"'\\''")+"'";
 async function genCode(lang){
   const r=cur();const b=await build(r,vars());
@@ -371,12 +647,12 @@ async function genCode(lang){
     return s+')\nprint(response.status_code)\nprint(response.text)'}
 }
 async function showCode(){
-  const m=modal('Code snippet',`<div class="tbar seg" id="cl">${[['curl','cURL'],['java','Java HttpClient'],['fetch','JS fetch'],['python','Python requests']].map(([k,l],i)=>`<button data-l="${k}" class="${i?'':'on'}">${l}</button>`).join('')}<span class="sp"></span><button id="cc">Copy</button></div><pre class="out nowrap" id="cs" style="max-height:55vh;overflow:auto"></pre>`,{wide:true,hideOk:true});
+  const m=modal('Code snippet',`<div class="tbar seg" id="cl">${[['curl','cURL'],['java','Java HttpClient'],['fetch','JS fetch'],['python','Python requests']].map(([k,l],i)=>`<button data-l="${k}" class="${i?'':'on'}">${l}</button>`).join('')}<span class="sp"></span><button id="cc">Copy</button></div><pre class="out" id="cs" style="max-height:55vh;overflow:auto;white-space:pre"></pre>`,{wide:true,hideOk:true});
   const show=async l=>{$$('#cl button[data-l]',m.el).forEach(b=>b.classList.toggle('on',b.dataset.l===l));try{$('#cs',m.el).textContent=await genCode(l)}catch(e){$('#cs',m.el).textContent='Error: '+e.message}};
   $$('#cl button[data-l]',m.el).forEach(b=>b.onclick=()=>show(b.dataset.l));$('#cc',m.el).onclick=()=>copy($('#cs',m.el).textContent);show('curl');
 }
 
-/* ---------- cURL import ---------- */
+/* ================= cURL import ================= */
 function tok(s){s=s.replace(/\\\r?\n/g,' ').trim();const out=[];let cur='',q=null,has=false;
   for(let i=0;i<s.length;i++){const c=s[i];
     if(q){if(c===q)q=null;else if(q==='"'&&c==='\\'&&i+1<s.length&&'"\\$`'.includes(s[i+1]))cur+=s[++i];else cur+=c}
@@ -406,11 +682,28 @@ function fromCurl(t){
   urlToParams(r);return r;
 }
 
-/* ---------- import / export ---------- */
-function pmItems(items,prefix,out){for(const it of items){if(it.item)pmItems(it.item,prefix+it.name+' / ',out);else out.push(pmReq(it,prefix))}}
-function pmReq(it,prefix){
+/* ================= collection tree helpers ================= */
+function allNodes(){const out=[];const walk=(n,path)=>{const p=path.concat(n.name);out.push({node:n,path:p});n.folders.forEach(f=>walk(f,p))};S.collections.forEach(c=>walk(c,[]));return out}
+const findNode=id=>(allNodes().find(x=>x.node.id===id)||{}).node;
+const pathOf=id=>(allNodes().find(x=>x.node.id===id)||{}).path;
+function walkReqs(n,fn){n.requests.forEach(r=>fn(r,n));n.folders.forEach(f=>walkReqs(f,fn))}
+function findReq(id){let res=null;S.collections.forEach(c=>walkReqs(c,(r,n)=>{if(r.id===id)res={r,node:n}}));return res}
+function collectReqs(n){const out=[];walkReqs(n,r=>out.push(r));return out}
+function removeNode(id){const rm=list=>{const i=list.findIndex(n=>n.id===id);if(i>=0){list.splice(i,1);return true}return list.some(n=>rm(n.folders))};rm(S.collections)}
+function storeReq(r,nodeId){
+  const node=findNode(nodeId);if(!node)return false;
+  const copy=clone({...r,dirty:undefined,collectionId:nodeId});const ex=findReq(r.id);
+  if(ex&&ex.node===node)node.requests[node.requests.indexOf(ex.r)]=copy;
+  else{if(ex)ex.node.requests.splice(ex.node.requests.indexOf(ex.r),1);node.requests.push(copy)}
+  r.collectionId=nodeId;r.dirty=false;node.open=true;save();return true}
+
+/* ================= import / export ================= */
+function pmNode(items,node){for(const it of items){
+  if(it.item){const f=newNode(it.name||'Folder');f.open=false;node.folders.push(f);pmNode(it.item,f)}
+  else{const r=pmReq(it);r.collectionId=node.id;node.requests.push(r)}}}
+function pmReq(it){
   const q=it.request||{};const url=typeof q.url==='string'?q.url:(q.url&&q.url.raw)||'';
-  const r=newReq({name:prefix+it.name,method:(q.method||'GET').toUpperCase(),url});
+  const r=newReq({name:it.name||'',method:(q.method||'GET').toUpperCase(),url,desc:typeof q.description==='string'?q.description:(q.description&&q.description.content)||''});
   r.headers=[...(q.header||[]).map(h=>({...newRow(),k:h.key,v:h.value,on:!h.disabled})),newRow()];urlToParams(r);
   const b=q.body;
   if(b){if(b.mode==='raw'){const l=b.options&&b.options.raw&&b.options.raw.language;r.body.type=l==='xml'?'xml':(l==='json'||/^\s*[\[{]/.test(b.raw||''))?'json':'text';r.body.raw=b.raw||''}
@@ -423,66 +716,109 @@ function pmReq(it,prefix){
   (it.event||[]).forEach(e=>{const c=(e.script&&e.script.exec||[]).join('\n');if(e.listen==='prerequest')r.pre=c;if(e.listen==='test')r.tests=c});
   return r;
 }
+function pmItemOut(r){
+  const q={method:r.method,header:r.headers.filter(h=>h.k).map(h=>({key:h.k,value:h.v,...(h.on?{}:{disabled:true})})),url:{raw:r.url}};
+  if(r.desc)q.description=r.desc;
+  const b=r.body;
+  if(['json','text','xml'].includes(b.type)&&b.raw)q.body={mode:'raw',raw:b.raw,options:{raw:{language:b.type==='text'?'text':b.type}}};
+  else if(b.type==='urlenc')q.body={mode:'urlencoded',urlencoded:b.urlenc.filter(x=>x.k).map(x=>({key:x.k,value:x.v,...(x.on?{}:{disabled:true})}))};
+  else if(b.type==='form')q.body={mode:'formdata',formdata:b.form.filter(x=>x.k).map(x=>x.t==='file'?{key:x.k,type:'file',src:x.v}:{key:x.k,value:x.v,type:'text',...(x.on?{}:{disabled:true})})};
+  const a=r.auth;
+  if(a.type==='bearer')q.auth={type:'bearer',bearer:[{key:'token',value:a.token,type:'string'}]};
+  else if(a.type==='basic')q.auth={type:'basic',basic:[{key:'username',value:a.user,type:'string'},{key:'password',value:a.pass,type:'string'}]};
+  else if(a.type==='apikey')q.auth={type:'apikey',apikey:[{key:'key',value:a.key,type:'string'},{key:'value',value:a.value,type:'string'},{key:'in',value:a.in,type:'string'}]};
+  const it={name:reqTitle(r),request:q,event:[]};
+  if(r.pre.trim())it.event.push({listen:'prerequest',script:{type:'text/javascript',exec:r.pre.split('\n')}});
+  if(r.tests.trim())it.event.push({listen:'test',script:{type:'text/javascript',exec:r.tests.split('\n')}});
+  if(!it.event.length)delete it.event;return it}
+const pmItemsOut=n=>[...n.folders.map(f=>({name:f.name,item:pmItemsOut(f)})),...n.requests.map(pmItemOut)];
+const toPostman=n=>({info:{name:n.name,schema:'https://schema.getpostman.com/json/collection/v2.1.0/collection.json'},item:pmItemsOut(n)});
 function importText(t){
   t=t.trim();if(!t)throw new Error('Nothing to import');
   if(/^curl\b/i.test(t)){const r=fromCurl(t);openReq(r);return 'Imported cURL request into a new tab'}
   let j;try{j=JSON.parse(t)}catch(e){throw new Error('Not valid JSON or a cURL command')}
-  if(j.info&&j.item){const rs=[];pmItems(j.item,'',rs);const c={id:uid(),name:j.info.name||'Imported',open:true,requests:rs};rs.forEach(r=>r.collectionId=c.id);S.collections.push(c);renderSide();save();return `Imported collection "${c.name}" (${rs.length} requests)`}
-  if(j.apilab){(j.collections||[]).forEach(c=>{if(S.collections.some(x=>x.id===c.id))c.id=uid();c.requests.forEach(r=>r.collectionId=c.id);S.collections.push(c)});
+  if(j.info&&j.item){const c=newNode(j.info.name||'Imported');c.open=true;pmNode(j.item,c);S.collections.push(c);
+    let extra='';if(Array.isArray(j.variable)&&j.variable.length){S.envs.push({id:uid(),name:(c.name)+' (collection variables)',vars:[...j.variable.filter(v=>v.key).map(v=>({...newRow(),k:v.key,v:String(v.value??'')})),newRow()]});renderEnvSel();extra=' and its variables as an environment'}
+    renderSide();save();return `Imported collection "${c.name}" (${collectReqs(c).length} requests)${extra}`}
+  if(j.apilab){(j.collections||[]).forEach(c=>{if(allNodes().some(x=>x.node.id===c.id))c.id=uid();normalize(c);S.collections.push(c)});
     (j.envs||[]).forEach(e=>{if(S.envs.some(x=>x.id===e.id))e.id=uid();S.envs.push(e)});renderSide();renderEnvSel();save();return 'Imported ApiLab backup'}
   if(Array.isArray(j.values)){S.envs.push({id:uid(),name:j.name||'Imported env',vars:[...j.values.map(v=>({...newRow(),k:v.key,v:v.value,on:v.enabled!==false})),newRow()]});renderEnvSel();save();return `Imported environment "${j.name||'Imported env'}"`}
   throw new Error('Unrecognised format (supported: cURL, Postman collection v2.x, Postman environment, ApiLab backup)');
 }
 
-/* ---------- rendering: sidebar ---------- */
+/* ================= sidebar ================= */
+function matchesQ(r,q){return !q||(reqTitle(r)+' '+r.url+' '+r.method).toLowerCase().includes(q)}
+function nodeHtml(n,depth,q,root){
+  const kids=n.folders.map(f=>nodeHtml(f,depth+1,q,false)).join('');
+  const reqs=n.requests.filter(r=>matchesQ(r,q));
+  if(q&&!kids&&!reqs.length)return '';
+  const open=q?true:n.open,pad=6+depth*14;
+  let h=`<div class="colh ${root?'root':''}" data-n="${n.id}" style="padding-left:${pad}px"><span>${open?'▾':'▸'}</span><span>${root?'📚':'📁'}</span><span class="nm" title="${esc(n.name)}">${esc(n.name)}</span><span class="acts"><button class="x" data-a="addr" title="Add request">＋</button><button class="x" data-a="addf" title="Add folder">▣</button><button class="x" data-a="run" title="Run all requests here">▶</button><button class="x" data-a="ren" title="Rename">✎</button>${root?'<button class="x" data-a="exp" title="Export">⭳</button>':''}<button class="x" data-a="del" title="Delete">✕</button></span></div>`;
+  if(open){h+=kids+reqs.map(r=>`<div class="itm ${S.active===r.id?'on':''}" data-r="${r.id}" data-n="${n.id}" style="padding-left:${pad+16}px"><span class="m ${r.method}">${r.method}</span><span class="nm" title="${esc(r.url)}">${esc(reqTitle(r))}</span><span class="acts"><button class="x" data-a="renr" title="Rename">✎</button><button class="x" data-a="dup" title="Duplicate">⧉</button><button class="x" data-a="delr" title="Delete">✕</button></span></div>`).join('');
+    if(!kids&&!reqs.length)h+=`<div class="itm muted" style="padding-left:${pad+16}px">Empty</div>`}
+  return h}
 function renderSide(){
-  const sb=$('#sbar'),list=$('#sideList');
+  const sb=$('#sbar'),list=$('#sideList'),q=filterQ.trim().toLowerCase();
   $$('.stabs button').forEach(b=>b.classList.toggle('on',b.dataset.s===S.sideTab));
   if(S.sideTab==='history'){
     sb.innerHTML='<button id="clrH" class="ghost">Clear history</button>';
     $('#clrH').onclick=()=>{S.history=[];save();renderSide()};
-    list.innerHTML=S.history.length?S.history.map(h=>`<div class="itm" data-h="${h.id}"><span class="m ${h.req.method}">${h.req.method}</span><span class="nm" title="${esc(h.req.url)}">${esc(h.req.url)}</span><span class="pill s${String(h.status||5)[0]}" style="font-size:10px">${h.status||'ERR'}</span></div>`).join(''):'<div class="empty">No requests yet</div>';
+    const hs=S.history.filter(h=>!q||(h.req.url+' '+h.req.method+' '+reqTitle(h.req)).toLowerCase().includes(q));
+    list.innerHTML=hs.length?hs.map(h=>`<div class="itm" data-h="${h.id}" title="${new Date(h.ts).toLocaleString()}"><span class="m ${h.req.method}">${h.req.method}</span><span class="nm">${esc(h.req.url)}</span><span class="pill s${String(h.status||5)[0]}" style="font-size:10px">${h.status||'ERR'}</span></div>`).join(''):'<div class="empty">No requests yet</div>';
   }else{
     sb.innerHTML='<button id="newCol">+ Collection</button><button id="newReqB">+ Request</button>';
-    $('#newCol').onclick=()=>{const n=prompt('Collection name');if(n){S.collections.push({id:uid(),name:n,open:true,requests:[]});save();renderSide()}};
+    $('#newCol').onclick=async()=>{const n=await askText('New collection name');if(n){S.collections.push(newNode(n));save();renderSide()}};
     $('#newReqB').onclick=()=>openReq(newReq());
-    list.innerHTML=S.collections.length?S.collections.map(c=>`<div class="col"><div class="colh" data-c="${c.id}"><span>${c.open?'▾':'▸'}</span><span class="nm">${esc(c.name)}</span><span class="acts"><button class="x" data-a="run" title="Run all">▶</button><button class="x" data-a="ren" title="Rename">✎</button><button class="x" data-a="exp" title="Export">⭳</button><button class="x" data-a="del" title="Delete">✕</button></span></div>${c.open?c.requests.map(r=>`<div class="itm ${S.active===r.id?'on':''}" data-r="${r.id}" data-c="${c.id}"><span class="m ${r.method}">${r.method}</span><span class="nm">${esc(r.name)}</span><span class="acts"><button class="x" data-a="dup" title="Duplicate">⧉</button><button class="x" data-a="delr" title="Delete">✕</button></span></div>`).join('')||'<div class="itm muted">Empty</div>':''}</div>`).join(''):'<div class="empty">Create a collection, or Import a Postman collection / cURL</div>';
+    list.innerHTML=S.collections.length?S.collections.map(c=>nodeHtml(c,0,q,true)).join('')||'<div class="empty">No matches</div>':'<div class="empty">Create a collection, or Import a Postman collection / cURL</div>';
   }
 }
 $('.stabs').onclick=e=>{const b=e.target.closest('button');if(b){S.sideTab=b.dataset.s;renderSide()}};
-$('#sideList').onclick=e=>{
+$('#sfilter').oninput=e=>{filterQ=e.target.value;renderSide()};
+$('#sideList').onclick=async e=>{
   const h=e.target.closest('[data-h]');if(h){const x=S.history.find(x=>x.id===h.dataset.h);if(x)openReq({...clone(x.req),id:uid(),collectionId:null});return}
   const act=e.target.closest('[data-a]')?.dataset.a;
-  const cEl=e.target.closest('[data-c]');const c=cEl&&S.collections.find(c=>c.id===cEl.dataset.c);
-  const rEl=e.target.closest('[data-r]');const r=rEl&&c&&c.requests.find(r=>r.id===rEl.dataset.r);
-  if(r){
-    if(act==='delr'){if(confirm('Delete request?')){c.requests=c.requests.filter(x=>x!==r);save();renderSide()}}
-    else if(act==='dup'){const n=clone(r);n.id=uid();n.name+=' copy';c.requests.splice(c.requests.indexOf(r)+1,0,n);save();renderSide()}
-    else openReq(clone(r),true);return}
-  if(c){
-    if(act==='del'){if(confirm(`Delete collection "${c.name}"?`)){S.collections=S.collections.filter(x=>x!==c);save();renderSide()}}
-    else if(act==='ren'){const n=prompt('Rename collection',c.name);if(n){c.name=n;save();renderSide()}}
-    else if(act==='exp')download(c.name.replace(/\W+/g,'_')+'.apilab.json',JSON.stringify({apilab:1,collections:[c],envs:[]},null,2),'application/json');
-    else if(act==='run')runner(c);
-    else{c.open=!c.open;save();renderSide()}}
+  const rEl=e.target.closest('[data-r]');const nEl=e.target.closest('[data-n]');const n=nEl&&findNode(nEl.dataset.n);
+  if(rEl&&n){const r=n.requests.find(r=>r.id===rEl.dataset.r);if(!r)return;
+    if(act==='delr'){if(await confirmBox(`Delete request “${reqTitle(r)}”?`)){n.requests=n.requests.filter(x=>x!==r);save();renderSide()}}
+    else if(act==='dup'){const c=clone(r);c.id=uid();c.name=reqTitle(r)+' copy';n.requests.splice(n.requests.indexOf(r)+1,0,c);save();renderSide()}
+    else if(act==='renr'){const nm=await askText('Rename request',isUntitled(r)?'':r.name);if(nm!==null){r.name=nm;const t=S.tabs.find(t=>t.id===r.id);if(t)t.name=nm;save();renderAll()}}
+    else openReq(clone(r));return}
+  if(n){
+    if(act==='del'){if(await confirmBox(`Delete “${n.name}” and everything in it?`)){removeNode(n.id);save();renderSide()}}
+    else if(act==='ren'){const nm=await askText('Rename',n.name);if(nm){n.name=nm;save();renderSide()}}
+    else if(act==='addr'){n.open=true;save();openReq(newReq({collectionId:n.id}))}
+    else if(act==='addf'){const nm=await askText('New folder name');if(nm){n.folders.push(newNode(nm));n.open=true;save();renderSide()}}
+    else if(act==='exp')exportCollection(n);
+    else if(act==='run')runner(n);
+    else{n.open=!n.open;save();renderSide()}}
 };
-
-/* ---------- tabs ---------- */
-function openReq(r,fromColl){
-  const ex=S.tabs.find(t=>t.id===r.id);
-  if(ex){S.active=ex.id}else{if(!r.id)r.id=uid();if(!r.params||!r.params.length)r.params=[newRow()];S.tabs.push(r);S.active=r.id}
-  renderAll();save();
+function exportCollection(n){
+  const m=modal(esc('Export “'+n.name+'”'),`<div class="row"><button id="e1" class="pri">Postman collection (v2.1)</button><button id="e2">ApiLab backup</button></div><div class="muted">The Postman file can be imported into Postman or Hoppscotch.</div>`,{hideOk:true});
+  const fn=n.name.replace(/\W+/g,'_');
+  $('#e1',m.el).onclick=()=>{download(fn+'.postman_collection.json',JSON.stringify(toPostman(n),null,2),'application/json');m.close()};
+  $('#e2',m.el).onclick=()=>{download(fn+'.apilab.json',JSON.stringify({apilab:1,collections:[n],envs:[]},null,2),'application/json');m.close()};
 }
-function closeTab(id){
-  const t=S.tabs.find(t=>t.id===id);if(t&&t.dirty&&!confirm('Close tab with unsaved changes?'))return;
+(()=>{const sp=$('#sbSplit'),sd=$('#side');let drag=false;
+  sp.onmousedown=e=>{drag=true;document.body.style.userSelect='none';e.preventDefault()};
+  addEventListener('mouseup',()=>{if(drag){drag=false;document.body.style.userSelect='';S.sbw=sd.offsetWidth;save()}});
+  addEventListener('mousemove',e=>{if(!drag)return;sd.style.width=Math.max(180,Math.min(innerWidth*.6,e.clientX))+'px'})})();
+
+/* ================= tabs ================= */
+function openReq(r){
+  const ex=S.tabs.find(t=>t.id===r.id);
+  if(ex){S.active=ex.id}else{if(!r.id)r.id=uid();if(!r.params||!r.params.length)r.params=[newRow()];if(r.desc===undefined)r.desc='';S.tabs.push(r);S.active=r.id}
+  renderAll();save();
+  if(r.collectionId===null&&!r.url)setTimeout(()=>urlH&&urlH.input.focus(),0);
+}
+async function closeTab(id){
+  const t=S.tabs.find(t=>t.id===id);if(t&&t.dirty&&!(await confirmBox('Close tab with unsaved changes?','Close')))return;
   const i=S.tabs.findIndex(t=>t.id===id);S.tabs.splice(i,1);
   if(!S.tabs.length)S.tabs.push(newReq());
   if(S.active===id)S.active=S.tabs[Math.min(i,S.tabs.length-1)].id;
   renderAll();save();
 }
-function tabTitle(t){return t.name!=='New Request'?t.name:(t.url?t.url.replace(/^https?:\/\//,'').slice(0,28):'New Request')}
 function renderTabs(){
-  $('#tabs').innerHTML=S.tabs.map(t=>`<div class="tab ${t.id===S.active?'on':''} ${t.dirty?'dirty':''}" data-t="${t.id}"><span class="m ${t.method}" style="min-width:0">${t.method}</span><span class="nm">${esc(tabTitle(t))}</span><button class="x" data-x="${t.id}">✕</button></div>`).join('')+'<div class="tab" id="addTab" style="color:var(--accent);font-weight:700">+</div>';
+  $('#tabs').innerHTML=S.tabs.map(t=>`<div class="tab ${t.id===S.active?'on':''} ${t.dirty?'dirty':''}" data-t="${t.id}" title="${esc(t.url||'')}"><span class="m ${t.method}" style="min-width:0">${t.method}</span><span class="nm">${esc(reqTitle(t))}</span><button class="x" data-x="${t.id}">✕</button></div>`).join('')+'<div class="tab" id="addTab" style="color:var(--accent);font-weight:700" title="New request">+</div>';
 }
 $('#tabs').onclick=e=>{
   if(e.target.closest('#addTab'))return openReq(newReq());
@@ -491,94 +827,137 @@ $('#tabs').onclick=e=>{
 };
 $('#tabs').onauxclick=e=>{const t=e.target.closest('[data-t]');if(t&&e.button===1)closeTab(t.dataset.t)};
 
-/* ---------- request pane ---------- */
-const SUBS=[['params','Params'],['auth','Authorization'],['headers','Headers'],['body','Body'],['pre','Pre-request'],['tests','Tests'],['settings','Settings']];
-function renderReq(){
+/* ================= request area ================= */
+const SUBS=[['params','Params'],['auth','Authorization'],['headers','Headers'],['body','Body'],['pre','Pre-request'],['tests','Tests'],['docs','Docs'],['settings','Settings']];
+let urlH=null;
+function renderHead(){
+  const r=cur();if(!r)return;
+  const p=r.collectionId?pathOf(r.collectionId):null;
+  $('#crumb').textContent=p?p.join(' / ')+' /':'';
+  $('#dirtyDot').textContent=r.dirty?'● unsaved':'';
+  const rn=$('#rname');if(document.activeElement!==rn)rn.value=isUntitled(r)?'':r.name;
+}
+function renderSubs(){
   const r=cur();
-  $('#method').innerHTML=METHODS.map(m=>`<option ${m===r.method?'selected':''}>${m}</option>`).join('');
-  $('#url').value=r.url;
   $('#subs').innerHTML=SUBS.map(([k,l])=>{
     let c='';if(k==='params'){const n=r.params.filter(p=>p.on&&p.k).length;if(n)c=` <span class="cnt">(${n})</span>`}
     if(k==='headers'){const n=r.headers.filter(p=>p.on&&p.k).length;if(n)c=` <span class="cnt">(${n})</span>`}
     if(k==='body'&&r.body.type!=='none')c=' <span class="cnt">●</span>';
-    if((k==='pre'&&r.pre.trim())||(k==='tests'&&r.tests.trim()))c=' <span class="cnt">●</span>';
+    if(k==='auth'&&r.auth.type!=='none')c=' <span class="cnt">●</span>';
+    if((k==='pre'&&r.pre.trim())||(k==='tests'&&r.tests.trim())||(k==='docs'&&(r.desc||'').trim()))c=' <span class="cnt">●</span>';
     return `<button data-k="${k}" class="${k===sub?'on':''}">${l}${c}</button>`}).join('');
-  renderPane();
 }
-$('#subs').onclick=e=>{const b=e.target.closest('button');if(b){sub=b.dataset.k;renderReq()}};
-const tabKey=ta=>ta.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();const s=ta.selectionStart;ta.setRangeText('  ',s,ta.selectionEnd,'end')}});
+function renderReq(keepUrl){
+  const r=cur();
+  $('#method').innerHTML=METHODS.map(m=>`<option ${m===r.method?'selected':''}>${m}</option>`).join('');
+  if(!keepUrl||!urlH){
+    urlH=hlInput($('#urlHost'),{value:r.url,mono:true,placeholder:'Enter URL, e.g. {{baseUrl}}/api/users — or paste a cURL command',
+      onInput:v=>{const c=cur();c.url=v;urlToParams(c);touch();renderSubs();if(sub==='params')renderPane()},onEnter:()=>sendCurrent()});
+    urlH.input.addEventListener('paste',e=>{const t=(e.clipboardData.getData('text')||'').trim();if(/^curl\b/i.test(t)){e.preventDefault();const n=fromCurl(t),c=cur();Object.assign(c,{...n,id:c.id,collectionId:c.collectionId,name:c.name,dirty:true});renderAll();toast('cURL imported')}});
+  }else urlH.paint();
+  renderHead();renderSubs();renderPane();
+}
+$('#subs').onclick=e=>{const b=e.target.closest('button');if(b){sub=b.dataset.k;renderSubs();renderPane()}};
+const SNIPPETS={
+  tests:[['Status is 200',"pm.test('Status is 200', () => pm.response.to.have.status(200));"],
+    ['Response time < 500ms',"pm.test('Response time < 500ms', () => pm.expect(pm.response.responseTime).to.be.below(500));"],
+    ['JSON field exists',"pm.test('Has id', () => {\n  const body = pm.response.json();\n  pm.expect(body).to.have.property('id');\n});"],
+    ['Header present',"pm.test('Has Content-Type', () => pm.response.to.have.header('Content-Type'));"],
+    ['Save token to env',"const token = pm.response.json().access_token;\npm.environment.set('token', token);"]],
+  pre:[['Set timestamp',"pm.environment.set('ts', Date.now());"],['Add header',"pm.request.headers.upsert({ key: 'X-Trace-Id', value: crypto.randomUUID() });"],['Log variable',"console.log(pm.environment.get('baseUrl'));"]]};
 function renderPane(){
-  const r=cur(),p=$('#reqPane');
-  if(sub==='params'){p.innerHTML='<div class="muted" style="margin-bottom:6px">Query parameters (kept in sync with the URL)</div><div id="kvp"></div>';
-    kv($('#kvp'),r.params,{onChange:()=>{paramsToUrl(r);$('#url').value=r.url;touch()}})}
-  else if(sub==='headers'){p.innerHTML='<div id="kvh"></div>';kv($('#kvh'),r.headers,{hn:true,onChange:()=>{touch();updSubCnt()}})}
+  const r=cur(),p=$('#reqPane');p.classList.remove('fill');
+  if(sub==='params'){kvPane(p,r.params,'params',{onChange:()=>{paramsToUrl(r);urlH.set(r.url);touch();renderSubs()}})}
+  else if(sub==='headers'){kvPane(p,r.headers,'headers',{hn:true,onChange:()=>{touch();renderSubs()}})}
   else if(sub==='auth'){const a=r.auth;
     p.innerHTML=`<div class="row"><label>Type</label><select id="at">${[['none','No Auth'],['bearer','Bearer Token'],['basic','Basic Auth'],['apikey','API Key']].map(([k,l])=>`<option value="${k}" ${a.type===k?'selected':''}>${l}</option>`).join('')}</select></div><div id="af"></div>`;
     const f=()=>{const A=$('#af');
-      if(a.type==='bearer')A.innerHTML=`<div class="row"><label>Token</label><input id="a1" style="flex:1" value="${esc(a.token)}" placeholder="{{token}}"></div>`;
-      else if(a.type==='basic')A.innerHTML=`<div class="row"><label>Username</label><input id="a1" value="${esc(a.user)}"></div><div class="row"><label>Password</label><input id="a2" type="password" value="${esc(a.pass)}"></div>`;
-      else if(a.type==='apikey')A.innerHTML=`<div class="row"><label>Key</label><input id="a1" value="${esc(a.key)}" placeholder="X-Api-Key"></div><div class="row"><label>Value</label><input id="a2" value="${esc(a.value)}"></div><div class="row"><label>Add to</label><select id="a3"><option value="header" ${a.in==='header'?'selected':''}>Header</option><option value="query" ${a.in==='query'?'selected':''}>Query params</option></select></div>`;
-      else A.innerHTML='<div class="muted">This request does not use any authorization.</div>';
-      const map={bearer:['token'],basic:['user','pass'],apikey:['key','value']}[a.type]||[];
-      map.forEach((k,i)=>{const el=$('#a'+(i+1));if(el)el.oninput=()=>{a[k]=el.value;touch()}});
-      const s=$('#a3');if(s)s.onchange=()=>{a.in=s.value;touch()}};
-    $('#at').onchange=e=>{a.type=e.target.value;f();touch()};f()}
-  else if(sub==='body'){const b=r.body;
-    p.innerHTML=`<div class="row"><select id="bt">${[['none','none'],['json','raw · JSON'],['text','raw · Text'],['xml','raw · XML'],['form','form-data'],['urlenc','x-www-form-urlencoded']].map(([k,l])=>`<option value="${k}" ${b.type===k?'selected':''}>${l}</option>`).join('')}</select><button id="beaut" style="display:${b.type==='json'?'':'none'}">Beautify</button></div><div id="bb" style="height:calc(100% - 40px)"></div>`;
-    const f=()=>{const B=$('#bb');
+      const field=(label,key,o={})=>{const row=document.createElement('div');row.className='row';row.innerHTML=`<label>${label}</label><div style="flex:1;max-width:520px"></div>`;A.appendChild(row);
+        hlInput(row.lastChild,{value:a[key],type:o.type,placeholder:o.ph||'',onInput:v=>{a[key]=v;touch()}})};
+      A.innerHTML='';
+      if(a.type==='bearer')field('Token','token',{ph:'{{token}}'});
+      else if(a.type==='basic'){field('Username','user');field('Password','pass',{type:'password'})}
+      else if(a.type==='apikey'){field('Key','key',{ph:'X-Api-Key'});field('Value','value');
+        const row=document.createElement('div');row.className='row';row.innerHTML=`<label>Add to</label><select id="a3"><option value="header" ${a.in==='header'?'selected':''}>Header</option><option value="query" ${a.in==='query'?'selected':''}>Query params</option></select>`;A.appendChild(row);$('#a3',row).onchange=e=>{a.in=e.target.value;touch()}}
+      else A.innerHTML='<div class="muted">This request does not use any authorization.</div>'};
+    $('#at').onchange=e=>{a.type=e.target.value;f();touch();renderSubs()};f()}
+  else if(sub==='body'){const b=r.body;p.classList.add('fill');
+    p.innerHTML=`<div class="row" style="margin-bottom:6px"><select id="bt">${[['none','none'],['json','raw · JSON'],['text','raw · Text'],['xml','raw · XML'],['form','form-data'],['urlenc','x-www-form-urlencoded']].map(([k,l])=>`<option value="${k}" ${b.type===k?'selected':''}>${l}</option>`).join('')}</select><button id="beaut" style="display:${b.type==='json'?'':'none'}">Beautify</button><button id="mini" style="display:${b.type==='json'?'':'none'}">Minify</button><span class="muted" id="bnote"></span></div><div id="bb" style="flex:1;min-height:0;display:flex;flex-direction:column"></div>`;
+    let ed=null;
+    const f=()=>{const B=$('#bb');$('#bnote').textContent={json:'Content-Type: application/json is added automatically',xml:'Content-Type: application/xml is added automatically',text:'Content-Type: text/plain is added automatically'}[b.type]||'';
       if(b.type==='none')B.innerHTML='<div class="muted">This request has no body.</div>';
-      else if(b.type==='form'){B.style.height='auto';B.innerHTML='<div id="kvb"></div>';kv($('#kvb'),b.form,{form:true,onChange:touch})}
-      else if(b.type==='urlenc'){B.style.height='auto';B.innerHTML='<div id="kvb"></div>';kv($('#kvb'),b.urlenc,{onChange:touch})}
-      else{B.innerHTML='<textarea class="code" id="raw" spellcheck="false"></textarea>';const ta=$('#raw');ta.value=b.raw;ta.oninput=()=>{b.raw=ta.value;touch()};tabKey(ta)}};
-    $('#bt').onchange=e=>{b.type=e.target.value;renderPane();touch();renderReqSubsOnly()};
-    $('#beaut').onclick=()=>{try{b.raw=JSON.stringify(JSON.parse(b.raw),null,2);$('#raw').value=b.raw;touch()}catch(e){toast('Invalid JSON: '+e.message)}};f()}
-  else if(sub==='pre'||sub==='tests'){const k=sub;
-    p.innerHTML=`<div class="muted" style="margin-bottom:6px">${k==='pre'?'Runs before the request. ':'Runs after the response. '}Postman-style API: <code>pm.environment.set("k","v")</code>, <code>pm.test("name", () =&gt; {…})</code>, <code>pm.expect(x).to.equal(y)</code>, <code>pm.response.json()</code>, <code>pm.response.to.have.status(200)</code>. Press Help for more.</div><div style="height:calc(100% - 50px)"><textarea class="code" id="scr" spellcheck="false" placeholder="${k==='pre'?'// e.g. pm.environment.set(&quot;ts&quot;, Date.now())':'pm.test(&quot;Status is 200&quot;, () =&gt; pm.response.to.have.status(200));'}"></textarea></div>`;
-    const ta=$('#scr');ta.value=r[k];ta.oninput=()=>{r[k]=ta.value;touch()};tabKey(ta)}
+      else if(b.type==='form'){p.classList.remove('fill');B.innerHTML='<div id="kvb"></div>';kv($('#kvb'),b.form,{form:true,onChange:touch})}
+      else if(b.type==='urlenc'){p.classList.remove('fill');B.innerHTML='<div id="kvb"></div>';kv($('#kvb'),b.urlenc,{onChange:touch})}
+      else{ed=editor(B,{value:b.raw,mode:b.type==='text'?'text':b.type,placeholder:b.type==='json'?'{\n  "name": "{{username}}"\n}':'',onInput:v=>{b.raw=v;touch();renderSubs()}})}};
+    $('#bt').onchange=e=>{b.type=e.target.value;touch();renderPane();renderSubs()};
+    $('#beaut').onclick=()=>{try{b.raw=JSON.stringify(JSON.parse(b.raw),null,2);ed.set(b.raw);touch()}catch(e){toast('Cannot format: invalid JSON (put {{variables}} inside quotes to format)')}};
+    $('#mini').onclick=()=>{try{b.raw=JSON.stringify(JSON.parse(b.raw));ed.set(b.raw);touch()}catch(e){toast('Cannot minify: invalid JSON')}};
+    f()}
+  else if(sub==='pre'||sub==='tests'){const k=sub;p.classList.add('fill');
+    p.innerHTML=`<div class="chips"><span class="muted">${k==='pre'?'Runs before the request.':'Runs after the response.'} Snippets:</span>${(SNIPPETS[k]||[]).map((s,i)=>`<span class="chip" data-i="${i}">${esc(s[0])}</span>`).join('')}</div><div id="sc" style="flex:1;min-height:0;display:flex;flex-direction:column"></div>`;
+    const ed=editor($('#sc'),{value:r[k],mode:'js',placeholder:k==='pre'?'// e.g. pm.environment.set("ts", Date.now())':'pm.test("Status is 200", () => pm.response.to.have.status(200));',onInput:v=>{r[k]=v;touch();renderSubs()}});
+    $$('.chip',p).forEach(c=>c.onclick=()=>{const t=SNIPPETS[k][+c.dataset.i][1];ed.ta.focus();ed.ta.setSelectionRange(ed.ta.value.length,ed.ta.value.length);ins(ed.ta,(ed.ta.value&&!ed.ta.value.endsWith('\n')?'\n':'')+t+'\n')})}
+  else if(sub==='docs'){p.classList.add('fill');
+    p.innerHTML='<div class="muted" style="margin-bottom:6px">Notes about this request (saved with it and exported to Postman).</div><div id="dc" style="flex:1;min-height:0;display:flex;flex-direction:column"></div>';
+    editor($('#dc'),{value:r.desc||'',mode:'text',placeholder:'What does this endpoint do? Expected inputs, gotchas…',onInput:v=>{r.desc=v;touch();renderSubs()}})}
   else if(sub==='settings'){const s=r.settings;
-    p.innerHTML=`<div class="row"><label>Name</label><input id="rn" style="width:300px" value="${esc(r.name)}"></div><div class="row"><label>Timeout (ms)</label><input id="to" type="number" style="width:120px" value="${s.timeout}"> <span class="muted">0 = no timeout</span></div><div class="row"><label>Redirects</label><label style="color:var(--text)"><input type="checkbox" id="fo" ${s.follow?'checked':''}> Follow redirects</label></div><div class="row"><label>SSL</label><label style="color:var(--text)"><input type="checkbox" id="in" ${s.insecure?'checked':''}> Ignore SSL certificate errors (internal/self-signed hosts)</label></div>`;
-    $('#rn').oninput=e=>{r.name=e.target.value||'New Request';touch()};$('#to').oninput=e=>{s.timeout=+e.target.value||0;touch()};$('#fo').onchange=e=>{s.follow=e.target.checked;touch()};$('#in').onchange=e=>{s.insecure=e.target.checked;touch()}}
+    p.innerHTML=`<div class="row"><label>Timeout (ms)</label><input id="to" type="number" style="width:120px" value="${s.timeout}"> <span class="muted">0 = no timeout</span></div><div class="row"><label>Redirects</label><label style="color:var(--text)"><input type="checkbox" id="fo" ${s.follow?'checked':''}> Follow redirects</label></div><div class="row"><label>SSL</label><label style="color:var(--text)"><input type="checkbox" id="in" ${s.insecure?'checked':''}> Ignore SSL certificate errors (internal/self-signed hosts)</label></div>`;
+    $('#to').oninput=e=>{s.timeout=+e.target.value||0;touch()};$('#fo').onchange=e=>{s.follow=e.target.checked;touch()};$('#in').onchange=e=>{s.insecure=e.target.checked;touch()}}
 }
-function updSubCnt(){const r=cur();const b=$('#subs button[data-k=headers]');if(b){const n=r.headers.filter(p=>p.on&&p.k).length;b.innerHTML='Headers'+(n?` <span class="cnt">(${n})</span>`:'')}}
-function renderReqSubsOnly(){const r=cur();const b=$('#subs button[data-k=body]');if(b)b.innerHTML='Body'+(r.body.type!=='none'?' <span class="cnt">●</span>':'')}
-
 $('#method').onchange=e=>{cur().method=e.target.value;touch()};
-$('#url').oninput=e=>{const r=cur();r.url=e.target.value;urlToParams(r);touch();if(sub==='params')renderPane()};
-$('#url').onpaste=e=>{const t=(e.clipboardData.getData('text')||'').trim();if(/^curl\b/i.test(t)){e.preventDefault();const n=fromCurl(t),r=cur();Object.assign(r,{...n,id:r.id,collectionId:r.collectionId,name:r.name,dirty:true});renderAll();toast('cURL imported')}};
-$('#url').onkeydown=e=>{if(e.key==='Enter')sendCurrent()};
+$('#rname').oninput=e=>{cur().name=e.target.value;touch()};
+$('#rname').onkeydown=e=>{if(e.key==='Enter'){e.target.blur();urlH&&urlH.input.focus()}};
 $('#send').onclick=sendCurrent;
 $('#codeBtn').onclick=showCode;
 $('#saveBtn').onclick=()=>saveReq();
 
-function saveReq(){
+async function saveReq(asNew=false){
   const r=cur();
-  const store=()=>{const c=S.collections.find(c=>c.id===r.collectionId);if(!c)return false;
-    const copy=clone({...r,dirty:undefined});const i=c.requests.findIndex(x=>x.id===r.id);if(i>=0)c.requests[i]=copy;else c.requests.push(copy);r.dirty=false;save();renderAll();toast('Saved');return true};
-  if(r.collectionId&&store())return;
-  const opts=S.collections.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')+'<option value="__new">+ New collection…</option>';
-  modal('Save request',`<div class="row"><label>Name</label><input id="sn" style="flex:1" value="${esc(r.name==='New Request'?(r.url||'New Request'):r.name)}"></div><div class="row"><label>Collection</label><select id="sc" style="flex:1">${opts}</select></div><div class="row" id="nr" style="display:${S.collections.length?'none':'flex'}"><label>New name</label><input id="scn" style="flex:1" placeholder="My API"></div>`,
+  if(!asNew&&r.collectionId&&findNode(r.collectionId)){storeReq(r,r.collectionId);renderAll();toast('Saved');return}
+  const opts=allNodes().map(x=>`<option value="${x.node.id}" ${x.node.id===r.collectionId?'selected':''}>${esc(x.path.join(' / '))}</option>`).join('')+'<option value="__new">+ New collection…</option>';
+  const m=modal('Save request',`<div class="row"><label>Name</label><input id="sn" style="flex:1" value="${esc(isUntitled(r)?'':r.name)}" placeholder="${esc(reqTitle(r))}"></div><div class="row"><label>Save to</label><select id="sc" style="flex:1">${opts}</select></div><div class="row" id="nr" style="display:${allNodes().length?'none':'flex'}"><label>New name</label><input id="scn" style="flex:1" placeholder="My API"></div>`,
     {okText:'Save',onOk:d=>{
       let cid=$('#sc',d).value;
-      if(cid==='__new'||!S.collections.length){const n=$('#scn',d).value.trim();if(!n){toast('Enter a collection name');return false}const c={id:uid(),name:n,open:true,requests:[]};S.collections.push(c);cid=c.id}
-      r.name=$('#sn',d).value.trim()||'New Request';r.collectionId=cid;store()}});
-  const sc=$('#sc');if(sc)sc.onchange=()=>$('#nr').style.display=sc.value==='__new'?'flex':'none';
-  if(!S.collections.length)$('#sc').value='__new';
+      if(cid==='__new'||!allNodes().length){const n=$('#scn',d).value.trim();if(!n){toast('Enter a collection name');return false}const c=newNode(n);S.collections.push(c);cid=c.id}
+      const nm=$('#sn',d).value.trim();if(!nm&&isUntitled(r)){toast('Enter a name');return false}
+      if(nm)r.name=nm;
+      if(asNew){const c=clone(r);c.id=uid();c.dirty=false;S.tabs.push(c);S.active=c.id;storeReq(c,cid)}else storeReq(r,cid);
+      renderAll();toast('Saved')}});
+  const sc=$('#sc',m.el);sc.onchange=()=>$('#nr',m.el).style.display=sc.value==='__new'?'flex':'none';
+  if(!allNodes().length)sc.value='__new';
+  $('#sn',m.el).focus();
 }
 
-/* ---------- response pane ---------- */
-function hl(json){return json.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/("(\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,m=>{let c='n';if(m[0]==='"')c=m.endsWith(':')?'k':'s';else if(m==='true'||m==='false')c='b';else if(m==='null')c='z';return `<span class="j${c}">${m}</span>`})}
+/* ================= response ================= */
 function fmtSize(n){return n<1024?n+' B':n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(2)+' MB'}
+function codeBlock(text,mode){
+  const n=text.split('\n').length;let g='';for(let i=1;i<=n;i++)g+=i+'\n';
+  const fn=HL[mode]||((t)=>esc(t));
+  return `<div class="cb"><pre class="gut">${g}</pre><pre class="code">${fn(text,false)}</pre></div>`}
+function jpath(obj,path){
+  path=path.trim();if(!path||path==='$')return obj;
+  const toks=[];path.replace(/^\$/,'').replace(/\[(\d+|\*)\]|\['([^']+)'\]|\["([^"]+)"\]|\.([^.\[\]]+)/g,(m,i,a,b,c)=>{toks.push(i??a??b??c);return m});
+  if(!toks.length)throw new Error('Use a path like $.data[0].id');
+  let curv=[obj],wild=false;
+  for(const t of toks){const nx=[];for(const c of curv){
+      if(t==='*'){wild=true;if(Array.isArray(c))nx.push(...c);else if(c&&typeof c==='object')nx.push(...Object.values(c))}
+      else if(c!=null&&typeof c==='object'&&t in c)nx.push(c[t])}
+    curv=nx;if(!curv.length)throw new Error('No match for '+path)}
+  return wild?curv:curv[0]}
 function renderResp(){
   const r=cur(),res=RESP[r.id],st=$('#rstat'),rs=$('#rsubs'),p=$('#respPane');
-  if(!res){st.innerHTML='';rs.innerHTML='';p.innerHTML='<div class="empty">Hit <b>Send</b> (Ctrl+Enter) to get a response</div>';return}
+  if(!res){st.innerHTML='';rs.innerHTML='';p.innerHTML='<div class="empty">Hit <b>Send</b> (<kbd>Ctrl</kbd> <kbd>Enter</kbd>) to get a response</div>';return}
   if(res.loading){st.innerHTML='<span class="muted">Sending…</span>';rs.innerHTML='';p.innerHTML='';return}
   if(res.error&&!res.status){st.innerHTML='<span class="pill err">Error</span>';rs.innerHTML=`<button class="${rsub==='console'?'on':''}" data-r="console">Console</button><button class="${rsub!=='console'?'on':''}" data-r="body">Details</button>`;
     p.innerHTML=rsub==='console'?consoleHtml(res):`<pre class="errbox">${esc(res.error)}</pre><div class="muted" style="margin-top:12px">Is the URL reachable from this machine? For internal hosts with self-signed certificates tick “Ignore SSL certificate errors” under Settings.</div>`;return}
   const pass=res.tests.filter(t=>t.pass).length;
   const cookies=res.headers.filter(h=>h[0].toLowerCase()==='set-cookie');
-  st.innerHTML=`<span class="pill s${String(res.status)[0]}">${res.status} ${esc(res.statusText)}</span><span>Time: <b>${Math.round(res.time)} ms</b></span><span>Size: <b>${fmtSize(res.size)}</b></span><span class="muted">${res.proto||''}</span><span class="sp"></span>`;
+  st.innerHTML=`<span class="pill s${String(res.status)[0]}">${res.status} ${esc(res.statusText)}</span><span>Time: <b>${Math.round(res.time)} ms</b></span><span>Size: <b>${fmtSize(res.size)}</b></span><span class="muted">${res.proto||''}</span>${res.tests.length?`<span class="${pass===res.tests.length?'pass':'fail'}">Tests ${pass}/${res.tests.length}</span>`:''}<span class="sp"></span>`;
   rs.innerHTML=[['body','Body'],['headers',`Headers (${res.headers.length})`],['cookies',`Cookies (${cookies.length})`],['tests',`Tests${res.tests.length?` (<span class="${pass===res.tests.length?'pass':'fail'}">${pass}/${res.tests.length}</span>)`:''}`],['console',`Console${res.logs.length?` (${res.logs.length})`:''}`]].map(([k,l])=>`<button data-r="${k}" class="${k===rsub?'on':''}">${l}</button>`).join('');
-  if(rsub==='headers')p.innerHTML=`<table class="t"><tr><th style="width:30%">Name</th><th>Value</th></tr>${res.headers.map(h=>`<tr><td><b>${esc(h[0])}</b></td><td>${esc(h[1])}</td></tr>`).join('')}</table>`;
+  if(rsub==='headers'){
+    p.innerHTML=`<div class="tbar"><input id="hf" placeholder="Filter headers…" style="width:240px"></div><div id="ht"></div>`;
+    const draw=q=>{$('#ht',p).innerHTML=`<table class="t"><tr><th style="width:30%">Name</th><th>Value</th></tr>${res.headers.filter(h=>!q||(h[0]+h[1]).toLowerCase().includes(q)).map(h=>`<tr><td><b>${esc(h[0])}</b></td><td>${esc(h[1])}</td></tr>`).join('')}</table>`};
+    draw('');$('#hf',p).oninput=e=>draw(e.target.value.toLowerCase())}
   else if(rsub==='cookies')p.innerHTML=cookies.length?`<table class="t"><tr><th>Name</th><th>Value</th><th>Attributes</th></tr>${cookies.map(c=>{const parts=c[1].split(';');const [n,...v]=parts[0].split('=');return `<tr><td><b>${esc(n)}</b></td><td>${esc(v.join('='))}</td><td>${esc(parts.slice(1).join(';').trim())}</td></tr>`}).join('')}</table>`:'<div class="empty">No cookies in this response</div>';
   else if(rsub==='tests')p.innerHTML=res.tests.length?res.tests.map(t=>`<div class="${t.pass?'pass':'fail'}">${t.pass?'✔ PASS':'✘ FAIL'} &nbsp;${esc(t.name)}${t.msg?` <span class="muted">— ${esc(t.msg)}</span>`:''}</div>`).join(''):'<div class="empty">No tests. Add some under the Tests tab of the request.</div>';
   else if(rsub==='console')p.innerHTML=consoleHtml(res);
@@ -586,57 +965,76 @@ function renderResp(){
 }
 function consoleHtml(res){return res.logs.length?`<pre class="out">${res.logs.map(l=>`<span class="${l.t==='err'?'fail':l.t==='warn'?'':'muted'}">${esc(l.m)}</span>`).join('\n')}</pre>`:'<div class="empty">Nothing logged. Use console.log() in scripts.</div>'}
 function bodyView(res,p){
-  const ct=res.ct.toLowerCase();let isJson=/json/.test(ct);let pretty=res.text;
+  const ct=res.ct.toLowerCase();let isJson=/json/.test(ct),parsed;let pretty=res.text;
   if(!isJson&&/^\s*[\[{]/.test(res.text)){try{JSON.parse(res.text);isJson=true}catch(e){}}
-  if(isJson){try{pretty=JSON.stringify(JSON.parse(res.text),null,2)}catch(e){isJson=false}}
-  const isImg=/^image\//.test(ct),isHtml=/html/.test(ct);
+  if(isJson){try{parsed=JSON.parse(res.text);pretty=JSON.stringify(parsed,null,2)}catch(e){isJson=false}}
+  const isImg=/^image\//.test(ct),isHtml=/html/.test(ct),isXml=/xml/.test(ct);
   if(!res.size){p.innerHTML='<div class="empty">This response has no body</div>';return}
-  const big=res.text.length>2e6;
-  p.innerHTML=`<div class="tbar">${isImg?'':`<span class="seg"><button data-v="pretty" class="${rview==='pretty'?'on':''}">Pretty</button><button data-v="raw" class="${rview==='raw'?'on':''}">Raw</button>${isHtml?`<button data-v="preview" class="${rview==='preview'?'on':''}">Preview</button>`:''}</span>`}<span class="sp"></span><button id="cpb">Copy</button><button id="svb">Save to file</button></div><div id="bv"></div>`;
-  const bv=$('#bv');
-  if(isImg){const u=URL.createObjectURL(new Blob([res.buf],{type:ct}));bv.innerHTML=`<img class="prev" src="${u}">`}
-  else if(!res.text&&res.size)bv.innerHTML=`<div class="muted">Binary response (${fmtSize(res.size)}, ${esc(res.ct||'unknown type')}). Use “Save to file”.</div>`;
-  else if(rview==='preview'&&isHtml){bv.innerHTML='<iframe class="prev" sandbox></iframe>';$('iframe',bv).srcdoc=res.text}
-  else if(big)bv.innerHTML=`<div class="muted">Large response – showing first 2 MB as raw text.</div><pre class="out">${esc(res.text.slice(0,2e6))}</pre>`;
-  else if(rview==='pretty'&&isJson)bv.innerHTML=`<pre class="out">${hl(pretty)}</pre>`;
-  else bv.innerHTML=`<pre class="out">${esc(rview==='pretty'?pretty:res.text)}</pre>`;
-  $('#cpb').onclick=()=>copy(isJson&&rview==='pretty'?pretty:res.text);
-  $('#svb').onclick=()=>download('response'+(isJson?'.json':isHtml?'.html':/xml/.test(ct)?'.xml':/image\/(\w+)/.test(ct)?'.'+RegExp.$1:'.txt'),res.buf,ct||undefined);
+  const big=res.text.length>300000;
+  p.innerHTML=`<div class="tbar">${isImg?'':`<span class="seg"><button data-v="pretty" class="${rview==='pretty'?'on':''}">Pretty</button><button data-v="raw" class="${rview==='raw'?'on':''}">Raw</button>${isHtml?`<button data-v="preview" class="${rview==='preview'?'on':''}">Preview</button>`:''}</span>`}${isJson&&rview==='pretty'?'<input id="jf" placeholder="Filter: $.data[0].name  or  $.items[*].id" style="width:300px;font-family:var(--mono)" spellcheck="false">':''}<span class="sp"></span><button id="wrapb">Wrap</button><button id="cpb">Copy</button><button id="svb">Save to file</button></div><div id="bv"></div><div id="jerr" class="fail" style="margin-top:6px"></div>`;
+  const bv=$('#bv');let shown=pretty,wrap=false;
+  const mode=isJson?'json':(isXml||isHtml)?'xml':'text';
+  const draw=()=>{
+    if(isImg){const u=URL.createObjectURL(new Blob([res.buf],{type:ct}));bv.innerHTML=`<img class="prev" src="${u}">`;return}
+    if(!res.text&&res.size){bv.innerHTML=`<div class="muted">Binary response (${fmtSize(res.size)}, ${esc(res.ct||'unknown type')}). Use “Save to file”.</div>`;return}
+    if(rview==='preview'&&isHtml){bv.innerHTML='<iframe class="prev" sandbox></iframe>';$('iframe',bv).srcdoc=res.text;return}
+    const txt=rview==='pretty'?shown:res.text;
+    if(big){bv.innerHTML=`<div class="muted">Large response – highlighting is off.</div><pre class="out">${esc(txt.slice(0,2e6))}</pre>`;return}
+    bv.innerHTML=codeBlock(txt,rview==='pretty'?mode:'text');$('.cb',bv).classList.toggle('wrap',wrap)};
+  draw();
+  const jf=$('#jf',p);
+  if(jf)jf.oninput=()=>{const e=$('#jerr',p);e.textContent='';try{const v=jpath(parsed,jf.value);shown=JSON.stringify(v,null,2)??'undefined'}catch(err){shown=pretty;e.textContent=jf.value.trim()?err.message:''}draw()};
+  $('#wrapb',p).onclick=()=>{wrap=!wrap;const c=$('.cb',bv);if(c)c.classList.toggle('wrap',wrap)};
+  $('#cpb').onclick=()=>copy(rview==='pretty'?shown:res.text);
+  $('#svb').onclick=()=>download('response'+(isJson?'.json':isHtml?'.html':isXml?'.xml':/image\/(\w+)/.test(ct)?'.'+RegExp.$1:'.txt'),res.buf,ct||undefined);
   $$('[data-v]',p).forEach(b=>b.onclick=()=>{rview=b.dataset.v;renderResp()});
 }
 $('#rsubs').onclick=e=>{const b=e.target.closest('button');if(b){rsub=b.dataset.r;renderResp()}};
 
-/* ---------- environments ---------- */
+/* ================= environments ================= */
 function renderEnvSel(){
   $('#envSel').innerHTML='<option value="">No environment</option>'+S.envs.map(e=>`<option value="${e.id}" ${e.id===S.activeEnv?'selected':''}>${esc(e.name)}</option>`).join('');
 }
-(()=>{const p=$('#proxyUrl');p.value=getProxy()||location.origin;p.placeholder='http://localhost:5050';
-  p.onchange=()=>{try{const v=p.value.trim().replace(/\/+$/,'');if(!v||v===location.origin&&!embedded)localStorage.removeItem(PROXY_KEY);else localStorage.setItem(PROXY_KEY,v)}catch(e){}toast('Proxy set to '+(getProxy()||location.origin))}})();
-$('#envSel').onchange=e=>{S.activeEnv=e.target.value;save()};
+$('#envSel').onchange=e=>{S.activeEnv=e.target.value;save();renderReq()};
+$('#envEye').onclick=e=>{
+  e.stopPropagation();$$('.pop').forEach(x=>x.remove());
+  const el=document.createElement('div');el.className='pop';
+  const sc=scopes(),rows=[...sc.entries()];
+  el.innerHTML=`<div style="display:flex;align-items:center;margin-bottom:6px"><b>${curEnv()?esc(curEnv().name):'No environment selected'}</b><span class="sp"></span><button id="pm">Manage</button></div>`+
+    (rows.length?`<table class="t">${rows.map(([k,x])=>`<tr data-k="${esc(k)}" style="cursor:pointer" title="Click to copy the value"><td><code>{{${esc(k)}}}</code></td><td>${esc(String(x.v).slice(0,80))}</td><td><span class="tagp">${x.scope}</span></td></tr>`).join('')}</table>`:'<div class="muted">No variables yet. Click Manage to add some, then use them as <code>{{name}}</code>.</div>');
+  document.body.appendChild(el);
+  const r=$('#envEye').getBoundingClientRect();el.style.top=r.bottom+6+'px';el.style.left=Math.max(8,Math.min(innerWidth-390,r.right-380))+'px';
+  $('#pm',el).onclick=()=>{el.remove();$('#envBtn').click()};
+  el.onclick=ev=>{ev.stopPropagation();const tr=ev.target.closest('tr[data-k]');if(tr){copy(String(sc.get(tr.dataset.k).v))}};
+  setTimeout(()=>document.addEventListener('click',function h(){el.remove();document.removeEventListener('click',h)}),0);
+};
 $('#envBtn').onclick=()=>{
-  let sel='__g';
-  const m=modal('Environments & variables',`<div class="envl"><div class="lft"><div id="el"></div><div style="margin-top:8px;display:flex;gap:6px"><button id="ea">+ Add</button><button id="ed">Delete</button></div></div><div class="rgt"><div class="row"><label>Name</label><input id="en" style="flex:1"></div><div class="muted" style="margin-bottom:6px">Use as <code>{{name}}</code> in URL, headers, auth and body. Built-ins: <code>{{$guid}}</code> <code>{{$timestamp}}</code> <code>{{$randomInt}}</code></div><div id="ek"></div></div></div>`,{wide:true,hideOk:true});
+  let sel=S.activeEnv||'__g';
+  const m=modal('Environments & variables',`<div class="envl"><div class="lft"><div id="el"></div><div style="margin-top:8px;display:flex;gap:6px"><button id="ea">+ Add</button><button id="ed">Delete</button></div></div><div class="rgt"><div class="row"><label>Name</label><input id="en" style="flex:1"></div><div class="muted" style="margin-bottom:6px">Use as <code>{{name}}</code> in URL, headers, auth and body. Built-ins: <code>{{$guid}}</code> <code>{{$timestamp}}</code> <code>{{$isoTimestamp}}</code> <code>{{$randomInt}}</code>. Environment values override Globals. Double-click an environment to make it active.</div><div id="ek"></div></div></div>`,{wide:true,hideOk:true,onClose:()=>{save();renderEnvSel();renderReq()}});
   const draw=()=>{
-    $('#el',m.el).innerHTML=`<div class="itm ${sel==='__g'?'on':''}" data-id="__g">🌐 Globals</div>`+S.envs.map(e=>`<div class="itm ${sel===e.id?'on':''}" data-id="${e.id}">${esc(e.name)}${e.id===S.activeEnv?' <span class="cnt pass">●</span>':''}</div>`).join('');
+    $('#el',m.el).innerHTML=`<div class="itm ${sel==='__g'?'on':''}" data-id="__g">🌐 Globals</div>`+S.envs.map(e=>`<div class="itm ${sel===e.id?'on':''}" data-id="${e.id}"><span class="nm">${esc(e.name)}</span>${e.id===S.activeEnv?'<span class="pass" title="Active">●</span>':''}</div>`).join('');
     const env=S.envs.find(e=>e.id===sel);const rows=env?env.vars:S.globals;
     $('#en',m.el).value=env?env.name:'Globals';$('#en',m.el).disabled=!env;
     kv($('#ek',m.el),rows,{onChange:()=>save()});
   };
   $('#el',m.el).onclick=e=>{const i=e.target.closest('[data-id]');if(i){sel=i.dataset.id;draw()}};
-  $('#en',m.el).oninput=e=>{const env=S.envs.find(x=>x.id===sel);if(env){env.name=e.target.value;save();renderEnvSel();$$('#el .itm',m.el).forEach(i=>{if(i.dataset.id===sel)i.firstChild.textContent=env.name})}};
+  $('#el',m.el).ondblclick=e=>{const i=e.target.closest('[data-id]');if(i&&i.dataset.id!=='__g'){S.activeEnv=i.dataset.id;save();renderEnvSel();draw()}};
+  $('#en',m.el).oninput=e=>{const env=S.envs.find(x=>x.id===sel);if(env){env.name=e.target.value;save();renderEnvSel();const nm=$(`#el [data-id="${sel}"] .nm`,m.el);if(nm)nm.textContent=env.name}};
   $('#ea',m.el).onclick=()=>{const e={id:uid(),name:'New environment',vars:[newRow()]};S.envs.push(e);sel=e.id;if(!S.activeEnv)S.activeEnv=e.id;renderEnvSel();save();draw()};
-  $('#ed',m.el).onclick=()=>{if(sel==='__g')return;if(!confirm('Delete this environment?'))return;S.envs=S.envs.filter(e=>e.id!==sel);if(S.activeEnv===sel)S.activeEnv='';sel='__g';renderEnvSel();save();draw()};
+  $('#ed',m.el).onclick=async()=>{if(sel==='__g')return;if(!(await confirmBox('Delete this environment?')))return;S.envs=S.envs.filter(e=>e.id!==sel);if(S.activeEnv===sel)S.activeEnv='';sel='__g';renderEnvSel();save();draw()};
   draw();
 };
 
-/* ---------- import/export/help ---------- */
+/* ================= import/export/help ================= */
 $('#impBtn').onclick=()=>{
   const m=modal('Import',`<div class="muted" style="margin-bottom:8px">Paste a <b>cURL command</b>, a <b>Postman collection (v2.x)</b>, a <b>Postman environment</b>, or an ApiLab backup — or pick a file.</div><textarea id="it" rows="12" spellcheck="false"></textarea><div style="margin-top:8px"><input type="file" id="if" accept=".json,.txt"></div>`,{okText:'Import',onOk:d=>{try{toast(importText($('#it',d).value))}catch(e){toast(e.message);return false}}});
   $('#if',m.el).onchange=async e=>{const f=e.target.files[0];if(f)$('#it',m.el).value=await f.text()};
 };
 $('#expBtn').onclick=()=>download('apilab-backup.json',JSON.stringify({apilab:1,collections:S.collections,envs:S.envs},null,2),'application/json');
-$('#helpBtn').onclick=()=>modal('Help',`<b>Shortcuts</b><br>Ctrl+Enter – send &nbsp; Ctrl+S – save request &nbsp; Enter in URL – send<br><br>
-<b>Scripts</b> (Pre-request / Tests tabs, Postman-compatible subset)<pre class="out nowrap">pm.environment.set("token", pm.response.json().access_token);
+$('#helpBtn').onclick=()=>modal('Help',`<b>Shortcuts</b><br><kbd>Ctrl</kbd>+<kbd>Enter</kbd> send · <kbd>Ctrl</kbd>+<kbd>S</kbd> save · <kbd>Ctrl</kbd>+<kbd>K</kbd> command palette · <kbd>Ctrl</kbd>+<kbd>L</kbd> focus URL · <kbd>Esc</kbd> close dialogs<br><br>
+<b>Variables</b><br>Type <code>{{</code> in the URL, headers, auth or body for suggestions. Orange = defined, red = not defined in the selected environment/globals. Hover a variable to see its value. The 👁 button lists everything that is currently defined.<br><br>
+<b>Editing</b><br>JSON/JS editors auto-close brackets and quotes, keep indentation, and show syntax errors under the editor. Params and Headers have a <i>Bulk edit</i> mode (<code>key: value</code> per line, <code>//</code> disables a line). The response filter accepts <code>$.a.b[0].c</code> and <code>[*]</code>.<br><br>
+<b>Scripts</b> (Pre-request / Tests tabs, Postman-compatible subset)<pre class="out" style="white-space:pre">pm.environment.set("token", pm.response.json().access_token);
 pm.environment.get("token");   pm.variables.set("k","v");   pm.globals.set("k","v");
 pm.request.headers.add({key:"X-Trace", value: pm.variables.get("id")});
 
@@ -649,36 +1047,73 @@ pm.expect(body).to.have.property("id");
 pm.expect(body.items).to.be.an("array").and.have.lengthOf(3);
 pm.response.headers.get("Content-Type");
 console.log("hello");</pre>
-<b>Tips</b><br>• Paste a cURL command into the URL box to convert it.<br>• Postman collections export (v2.1) can be imported; scripts and auth are kept.<br>• Your data is stored in this browser (localStorage) for http://localhost:PORT — keep using the same port, and use “Export all” for backups.<br>• Unreachable HTTPS host with self-signed cert? Settings → ignore SSL errors.<br>• Corporate proxy: start with <code>java -Djava.net.useSystemProxies=true tools/api-proxy/ApiLab.java</code> (or <code>npm run api-proxy</code> after setting JAVA_TOOL_OPTIONS)`,{wide:true,hideOk:true});
+<b>Tips</b><br>• Paste a cURL command into the URL box to convert it.<br>• Folders can be nested; use ＋ ▣ ▶ on a collection or folder. Collections export as Postman v2.1.<br>• Your data is stored in this browser (localStorage). Use “Export all” for backups.<br>• Unreachable HTTPS host with self-signed cert? Settings → ignore SSL errors.<br>• Corporate proxy: start the Java proxy with <code>JAVA_TOOL_OPTIONS=-Djava.net.useSystemProxies=true</code>`,{wide:true,hideOk:true});
 
-/* ---------- collection runner ---------- */
-function runner(c){
-  const m=modal(`Run: ${esc(c.name)}`,`<div class="tbar"><button class="pri" id="go">▶ Run ${c.requests.length} requests</button><span id="sum" class="muted"></span></div><table class="t" id="rt"><tr><th>Request</th><th>Status</th><th>Time</th><th>Tests</th></tr></table>`,{wide:true,hideOk:true});
+/* ================= collection runner ================= */
+function runner(n){
+  const reqs=collectReqs(n);
+  const m=modal(`Run: ${esc(n.name)}`,`<div class="tbar"><button class="pri" id="go">▶ Run ${reqs.length} requests</button><span id="sum" class="muted"></span></div><table class="t" id="rt"><tr><th>Request</th><th>Status</th><th>Time</th><th>Tests</th></tr></table>`,{wide:true,hideOk:true});
   $('#go',m.el).onclick=async()=>{
     const tb=$('#rt',m.el);tb.innerHTML='<tr><th>Request</th><th>Status</th><th>Time</th><th>Tests</th></tr>';let tp=0,tt=0,ok=0;
-    for(const r of c.requests){const tr=document.createElement('tr');tr.innerHTML=`<td><span class="m ${r.method}">${r.method}</span> ${esc(r.name)}</td><td colspan="3" class="muted">running…</td>`;tb.appendChild(tr);
+    for(const r of reqs){const tr=document.createElement('tr');tr.innerHTML=`<td><span class="m ${r.method}">${r.method}</span> ${esc(reqTitle(r))}</td><td colspan="3" class="muted">running…</td>`;tb.appendChild(tr);
       const res=await execute(clone(r));const p=res.tests.filter(t=>t.pass).length;tp+=p;tt+=res.tests.length;if(res.status)ok++;
-      tr.innerHTML=`<td><span class="m ${r.method}">${r.method}</span> ${esc(r.name)}</td><td>${res.status?`<span class="pill s${String(res.status)[0]}">${res.status}</span>`:`<span class="fail">${esc((res.error||'').split('\n')[0])}</span>`}</td><td>${res.time?Math.round(res.time)+' ms':''}</td><td>${res.tests.length?`<span class="${p===res.tests.length?'pass':'fail'}">${p}/${res.tests.length}</span>`:'—'}${res.tests.filter(t=>!t.pass).map(t=>`<div class="fail" style="font-size:11px">✘ ${esc(t.name)}${t.msg?': '+esc(t.msg):''}</div>`).join('')}</td>`;
-      $('#sum',m.el).textContent=`${ok}/${c.requests.length} responded · tests ${tp}/${tt} passed`}
+      tr.innerHTML=`<td><span class="m ${r.method}">${r.method}</span> ${esc(reqTitle(r))}</td><td>${res.status?`<span class="pill s${String(res.status)[0]}">${res.status}</span>`:`<span class="fail">${esc((res.error||'').split('\n')[0])}</span>`}</td><td>${res.time?Math.round(res.time)+' ms':''}</td><td>${res.tests.length?`<span class="${p===res.tests.length?'pass':'fail'}">${p}/${res.tests.length}</span>`:'—'}${res.tests.filter(t=>!t.pass).map(t=>`<div class="fail" style="font-size:11px">✘ ${esc(t.name)}${t.msg?': '+esc(t.msg):''}</div>`).join('')}</td>`;
+      $('#sum',m.el).textContent=`${ok}/${reqs.length} responded · tests ${tp}/${tt} passed`}
     save();
   };
 }
 
-/* ---------- layout / keyboard ---------- */
+/* ================= command palette ================= */
+function openPalette(){
+  if($('.pal'))return;
+  const ov=document.createElement('div');ov.className='ov top';
+  ov.innerHTML='<div class="pal"><input placeholder="Search requests, environments and actions…" spellcheck="false"><div class="list"></div></div>';
+  document.body.appendChild(ov);ov._close=()=>ov.remove();ov.onmousedown=e=>{if(e.target===ov)ov.remove()};
+  const inp=$('input',ov),list=$('.list',ov);inp.focus();
+  const acts=[['New request',()=>openReq(newReq()),''],['Send request',sendCurrent,'Ctrl+Enter'],['Save request',()=>saveReq(),'Ctrl+S'],['Save request as…',()=>saveReq(true),'Ctrl+Shift+S'],
+    ['Show code snippet',showCode,''],['Import…',()=>$('#impBtn').click(),''],['Manage environments',()=>$('#envBtn').click(),''],['Export everything',()=>$('#expBtn').click(),''],
+    ['Switch layout (stacked / side by side)',()=>$('#layBtn').click(),''],['Toggle theme',()=>$('#themeBtn').click(),''],['Show help & shortcuts',()=>$('#helpBtn').click(),''],
+    ['Close current tab',()=>closeTab(S.active),''],['Close all other tabs',()=>{S.tabs=S.tabs.filter(t=>t.id===S.active);renderAll();save()},'']];
+  let items=[],idx=0;
+  const build=q=>{const words=q.toLowerCase().split(/\s+/).filter(Boolean);const ok=s=>words.every(w=>s.toLowerCase().includes(w));
+    const rq=[];S.collections.forEach(c=>walkReqs(c,(r,n)=>{const s=`${r.method} ${reqTitle(r)} ${r.url}`;if(ok(s)&&!S.tabs.some(t=>t.id===r.id))rq.push({g:'Requests',label:`<span class="m ${r.method}">${r.method}</span> ${esc(reqTitle(r))}`,hint:(pathOf(n.id)||[]).join(' / '),run:()=>openReq(clone(r))})}));
+    const op=S.tabs.filter(t=>ok(`${t.method} ${reqTitle(t)} ${t.url}`)).map(t=>({g:'Open tabs',label:`<span class="m ${t.method}">${t.method}</span> ${esc(reqTitle(t))}`,hint:t.url,run:()=>{S.active=t.id;renderAll()}}));
+    const ev=S.envs.filter(e=>ok('environment '+e.name)).map(e=>({g:'Environments',label:'Use environment: '+esc(e.name),hint:e.id===S.activeEnv?'active':'',run:()=>{S.activeEnv=e.id;save();renderEnvSel();renderReq();toast('Environment: '+e.name)}}));
+    const ac_=acts.filter(a=>ok(a[0])).map(a=>({g:'Actions',label:esc(a[0]),hint:a[2],run:a[1]}));
+    items=[...op,...rq.slice(0,30),...ev,...ac_];idx=0;draw()};
+  const draw=()=>{let last='';list.innerHTML=items.length?items.map((it,i)=>{const g=it.g!==last?`<div class="grp">${it.g}</div>`:'';last=it.g;return g+`<div class="it ${i===idx?'on':''}" data-i="${i}"><span>${it.label}</span><span class="hint">${esc(it.hint||'')}</span></div>`}).join(''):'<div class="empty" style="margin:20px">Nothing found</div>';list.querySelector('.on')?.scrollIntoView({block:'nearest'})};
+  const run=i=>{const it=items[i];ov.remove();if(it)setTimeout(it.run,0)};
+  inp.oninput=()=>build(inp.value);
+  inp.onkeydown=e=>{if(e.key==='ArrowDown'){e.preventDefault();idx=Math.min(items.length-1,idx+1);draw()}else if(e.key==='ArrowUp'){e.preventDefault();idx=Math.max(0,idx-1);draw()}else if(e.key==='Enter'){e.preventDefault();run(idx)}};
+  list.onclick=e=>{const i=e.target.closest('[data-i]');if(i)run(+i.dataset.i)};
+  build('');
+}
+$('#palBtn').onclick=openPalette;
+
+/* ================= layout / keyboard ================= */
 function renderAll(){renderSide();renderTabs();renderReq();renderResp()}
 document.addEventListener('keydown',e=>{
-  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();sendCurrent()}
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveReq()}
+  const mod=e.ctrlKey||e.metaKey;
+  if(mod&&e.key==='Enter'){e.preventDefault();sendCurrent()}
+  else if(mod&&e.key.toLowerCase()==='s'){e.preventDefault();saveReq(e.shiftKey)}
+  else if(mod&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette()}
+  else if(mod&&e.key.toLowerCase()==='l'){e.preventDefault();urlH&&urlH.input.focus()}
+  else if(e.key==='Escape'&&!ac){const o=$$('.ov').pop();if(o){e.preventDefault();o._close?o._close():o.remove()}else $$('.pop').forEach(x=>x.remove())}
 });
-(()=>{const sp=$('#split'),rq=$('#reqSec');let drag=false;
-  sp.onmousedown=()=>{drag=true;document.body.style.userSelect='none'};
-  document.onmouseup=()=>{drag=false;document.body.style.userSelect=''};
-  document.onmousemove=e=>{if(!drag)return;const top=$('#tabs').getBoundingClientRect().bottom;const h=Math.max(140,Math.min(window.innerHeight-top-160,e.clientY-top));rq.style.height=h+'px'}})();
+(()=>{const sp=$('#split'),rq=$('#reqSec'),work=$('#work');let drag=false;
+  sp.onmousedown=e=>{drag=true;document.body.style.userSelect='none';e.preventDefault()};
+  addEventListener('mouseup',()=>{drag=false;document.body.style.userSelect=''});
+  addEventListener('mousemove',e=>{if(!drag)return;const b=work.getBoundingClientRect();
+    if(S.layout==='h')rq.style.width=Math.max(320,Math.min(b.width-260,e.clientX-b.left))+'px';
+    else rq.style.height=Math.max(140,Math.min(b.height-160,e.clientY-b.top))+'px'})})();
 
 load();
 if(!S.tabs.length){const r=newReq();S.tabs.push(r);S.active=r.id}
 if(!S.tabs.find(t=>t.id===S.active))S.active=S.tabs[0].id;
-renderEnvSel();renderAll();
+$('#side').style.width=(S.sbw||290)+'px';
+(()=>{const p=$('#proxyUrl');p.value=getProxy()||location.origin;p.placeholder='http://localhost:5050';
+  p.onchange=()=>{try{const v=p.value.trim().replace(/\/+$/,'');if(!v||v===location.origin&&!embedded)localStorage.removeItem(PROXY_KEY);else localStorage.setItem(PROXY_KEY,v)}catch(e){}toast('Proxy set to '+(getProxy()||location.origin))}})();
+applyTheme();applyLayout();renderEnvSel();renderAll();
 </script>
 </body>
 </html>

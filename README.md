@@ -9,7 +9,7 @@ The app builds to a static folder. It has no backend and no analytics, and the p
 | Category | Tool | What it does |
 | --- | --- | --- |
 | API | Swagger Editor | Edit and preview OpenAPI/Swagger specs offline (bundled Swagger Editor, network blocked) |
-| API | API Client | Postman-style REST client: tabs, collections, environments, auth, scripts/tests, code snippets, cURL/Postman import. Needs the local proxy (see below) |
+| API | API Client | Postman/Hoppscotch-style REST client: named requests, folders, environments with highlighted `{{variables}}`, syntax-highlighted JSON editor, tests, command palette, cURL/Postman import and export. Needs the local proxy (see below) |
 | Data | JSON/YAML Formatter | Validate, format, minify, and convert between JSON and YAML |
 | Data | Text Diff | Line diff with word-level highlights, in unified or split view |
 | Data | SQL Formatter | Re-indent SQL for readability while keeping literals, comments and operators intact |
@@ -57,6 +57,7 @@ npm run api-proxy                  # listens on http://localhost:5050 (127.0.0.1
 java tools/api-proxy/ApiLab.java 8080
 ```
 
+- **Client features:** named requests and nested folders; `{{variable}}` highlighting (orange = defined, red = undefined) with hover values, `{{` autocomplete and an environment quick-look (eye button); JSON/JS/XML editors with highlighting, line numbers, auto-closing brackets and live syntax errors; Bulk edit for params and headers; Pre-request scripts and Tests with a Postman-style `pm.*` API and snippets; response filter (`$.data[0].id`), cookies and headers search; Ctrl+K command palette; stacked or side-by-side layout; code snippets (cURL, Java, fetch, Python); cURL and Postman v2.x import, Postman v2.1 export. Press Help inside the client for shortcuts.
 - It also serves the client by itself at `http://localhost:5050/`, so it works without the rest of the app.
 - Allowed cross-origin callers default to `http://localhost:5173` and `:4173` (Vite dev and preview). For a deployed copy add its origin: `java -Dapilab.origins=https://tools.example.com tools/api-proxy/ApiLab.java` (or the `APILAB_ORIGINS` env var).
 - Behind a corporate proxy: `JAVA_TOOL_OPTIONS=-Djava.net.useSystemProxies=true npm run api-proxy`.
